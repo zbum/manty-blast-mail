@@ -1,0 +1,23 @@
+server:
+  port: 8080
+  session_secret: "change-me-in-production-32-bytes!"
+
+database:
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  password: "your-db-password"
+  name: "mail_sender"
+
+smtp:
+  host: "smtp.example.com"
+  port: 465                # 465 for SMTPS, 587/25 for STARTTLS
+  username: "user@example.com"
+  password: "your-smtp-password"
+  pool_size: 10
+
+sender:
+  default_rate_limit: 10   # emails per second
+  max_rate_limit: 100
+  worker_count: 5
+  batch_size: 100
