@@ -67,6 +67,7 @@ func (s *Server) setupRoutes() {
 
 			r.Post("/auth/logout", authHandler.Logout)
 			r.Get("/auth/me", authHandler.Me)
+			r.Post("/auth/users", authHandler.CreateUser)
 
 			// Campaigns
 			r.Get("/campaigns", campaignHandler.List)

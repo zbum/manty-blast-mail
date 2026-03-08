@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -42,6 +43,14 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to auto-migrate database")
 	}
 	log.Info().Msg("database migration completed")
+
+	var count int64
+	db.Model(&auth.User{}).Count(&count)
+	if count == 0 {
+		hashed, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
+		db.Create(&auth.User{Username: "admin", Password: string(hashed)})
+		log.Info().Msg("default admin user created (username: admin, password: admin)")
+	}
 
 	srv := server.New(cfg, db)
 	if err := srv.Start(); err != nil {

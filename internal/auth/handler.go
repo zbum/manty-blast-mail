@@ -93,6 +93,43 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"message":"logged out"}`))
 }
 
+type createUserRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	var req createUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, `{"error":"invalid request body"}`, http.StatusBadRequest)
+		return
+	}
+
+	if req.Username == "" || req.Password == "" {
+		http.Error(w, `{"error":"username and password are required"}`, http.StatusBadRequest)
+		return
+	}
+
+	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, `{"error":"failed to hash password"}`, http.StatusInternalServerError)
+		return
+	}
+
+	user := User{Username: req.Username, Password: string(hashed)}
+	if err := h.db.Create(&user).Error; err != nil {
+		http.Error(w, `{"error":"username already exists"}`, http.StatusConflict)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(meResponse{
+		ID:       user.ID,
+		Username: user.Username,
+	})
+}
+
 func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(UserIDKey).(uint64)
 	if !ok {

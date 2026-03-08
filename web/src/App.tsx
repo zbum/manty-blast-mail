@@ -11,6 +11,7 @@ import NewCampaignPage from './pages/NewCampaignPage';
 import ComposePage from './pages/ComposePage';
 import SendingPage from './pages/SendingPage';
 import ReportPage from './pages/ReportPage';
+import AdminPage from './pages/AdminPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,6 +104,7 @@ function App() {
               <Route path="campaigns/:id/compose" element={<ComposePage />} />
               <Route path="campaigns/:id/send" element={<SendingPage />} />
               <Route path="campaigns/:id/report" element={<ReportPage />} />
+              <Route path="admin" element={<AdminPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

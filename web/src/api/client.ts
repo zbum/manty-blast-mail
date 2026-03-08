@@ -12,6 +12,8 @@ export const login = (username: string, password: string) =>
   api.post('/auth/login', { username, password });
 export const logout = () => api.post('/auth/logout');
 export const getMe = () => api.get('/auth/me');
+export const createUser = (username: string, password: string) =>
+  api.post('/auth/users', { username, password });
 
 // Campaigns
 export const getCampaigns = (page = 1) => api.get(`/campaigns?page=${page}`);
