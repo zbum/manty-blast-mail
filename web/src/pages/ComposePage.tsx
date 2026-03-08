@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCampaign, updateCampaign, previewCampaign, previewSend } from '../api/client';
+import EmailEditor from '../components/EmailEditor';
 
 type Mode = 'html' | 'mime';
 type IcsMode = 'builder' | 'raw';
@@ -339,11 +340,9 @@ export default function ComposePage() {
             </div>
 
             {mode === 'html' ? (
-              <textarea
-                value={htmlContent}
-                onChange={(e) => setHtmlContent(e.target.value)}
-                placeholder="Enter your HTML email content..."
-                className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+              <EmailEditor
+                content={htmlContent}
+                onContentChange={setHtmlContent}
               />
             ) : (
               <textarea

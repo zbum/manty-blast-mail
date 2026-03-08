@@ -207,6 +207,56 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"message":"user deleted"}`))
 }
 
+type updateRoleRequest struct {
+	Role string `json:"role"`
+}
+
+func (h *Handler) UpdateRole(w http.ResponseWriter, r *http.Request) {
+	admin, err := h.requireAdmin(r)
+	if err != nil {
+		http.Error(w, `{"error":"admin access required"}`, http.StatusForbidden)
+		return
+	}
+
+	idStr := chi.URLParam(r, "userId")
+	var userID uint64
+	if _, err := fmt.Sscanf(idStr, "%d", &userID); err != nil {
+		http.Error(w, `{"error":"invalid user id"}`, http.StatusBadRequest)
+		return
+	}
+
+	if userID == admin.ID {
+		http.Error(w, `{"error":"cannot change your own role"}`, http.StatusBadRequest)
+		return
+	}
+
+	var req updateRoleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, `{"error":"invalid request body"}`, http.StatusBadRequest)
+		return
+	}
+
+	if req.Role != "admin" && req.Role != "user" {
+		http.Error(w, `{"error":"role must be 'admin' or 'user'"}`, http.StatusBadRequest)
+		return
+	}
+
+	var user User
+	if err := h.db.First(&user, userID).Error; err != nil {
+		http.Error(w, `{"error":"user not found"}`, http.StatusNotFound)
+		return
+	}
+
+	h.db.Model(&user).Update("role", req.Role)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(meResponse{
+		ID:       user.ID,
+		Username: user.Username,
+		Role:     req.Role,
+	})
+}
+
 type changePasswordRequest struct {
 	CurrentPassword string `json:"current_password"`
 	NewPassword     string `json:"new_password"`

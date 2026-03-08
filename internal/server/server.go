@@ -76,6 +76,7 @@ func (s *Server) setupRoutes() {
 			r.Post("/auth/users", authHandler.CreateUser)
 			r.Get("/auth/users", authHandler.ListUsers)
 			r.Delete("/auth/users/{userId}", authHandler.DeleteUser)
+			r.Put("/auth/users/{userId}/role", authHandler.UpdateRole)
 			r.Put("/auth/password", authHandler.ChangePassword)
 
 			// Campaigns
