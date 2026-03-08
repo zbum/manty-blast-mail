@@ -175,21 +175,16 @@ func (h *Handler) writePump(client *Client) {
 				return
 			}
 
-			w, err := client.conn.NextWriter(ws.TextMessage)
-			if err != nil {
+			if err := client.conn.WriteMessage(ws.TextMessage, message); err != nil {
 				return
 			}
-			w.Write(message)
 
-			// Write any queued messages to reduce syscalls.
+			// Write any queued messages as separate frames.
 			n := len(client.send)
 			for i := 0; i < n; i++ {
-				w.Write([]byte("\n"))
-				w.Write(<-client.send)
-			}
-
-			if err := w.Close(); err != nil {
-				return
+				if err := client.conn.WriteMessage(ws.TextMessage, <-client.send); err != nil {
+					return
+				}
 			}
 
 		case <-ticker.C:
