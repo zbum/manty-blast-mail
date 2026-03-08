@@ -338,7 +338,9 @@ func (h *Handler) Preview(w http.ResponseWriter, r *http.Request) {
 }
 
 type previewSendRequest struct {
-	Email string `json:"email"`
+	Email     string            `json:"email"`
+	Name      string            `json:"name"`
+	Variables map[string]string `json:"variables"`
 }
 
 func (h *Handler) PreviewSend(w http.ResponseWriter, r *http.Request) {
@@ -372,9 +374,16 @@ func (h *Handler) PreviewSend(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build the email using the campaign content
+	name := req.Name
+	if name == "" {
+		name = req.Email
+	}
 	vars := map[string]string{
-		"Name":  req.Email,
+		"Name":  name,
 		"Email": req.Email,
+	}
+	for k, v := range req.Variables {
+		vars[k] = v
 	}
 
 	var msg []byte

@@ -159,6 +159,8 @@ export default function ComposePage() {
   const [previewHtml, setPreviewHtml] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [testEmail, setTestEmail] = useState('');
+  const [testName, setTestName] = useState('');
+  const [testVars, setTestVars] = useState<{ key: string; value: string }[]>([]);
   const [testSending, setTestSending] = useState(false);
 
   const { data: campaign, isLoading } = useQuery<Campaign>({
@@ -258,7 +260,11 @@ export default function ComposePage() {
     if (!testEmail.trim()) return;
     setTestSending(true);
     try {
-      await previewSend(campaignId, testEmail.trim());
+      const variables: Record<string, string> = {};
+      for (const v of testVars) {
+        if (v.key.trim()) variables[v.key.trim()] = v.value;
+      }
+      await previewSend(campaignId, testEmail.trim(), testName.trim() || undefined, Object.keys(variables).length > 0 ? variables : undefined);
       setMessage(`Test email sent to ${testEmail}.`);
     } catch (err: any) {
       setMessage(err.response?.data?.error || 'Failed to send test email.');
@@ -548,8 +554,54 @@ export default function ComposePage() {
                   onChange={(e) => setTestEmail(e.target.value)}
                   placeholder="test@example.com"
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                <input
+                  type="text"
+                  value={testName}
+                  onChange={(e) => setTestName(e.target.value)}
+                  placeholder="Name (optional)"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {testVars.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-slate-500">Variables</label>
+                    {testVars.map((v, i) => (
+                      <div key={i} className="flex gap-1">
+                        <input
+                          type="text"
+                          value={v.key}
+                          onChange={(e) => setTestVars((prev) => prev.map((item, j) => j === i ? { ...item, key: e.target.value } : item))}
+                          placeholder="Key"
+                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <input
+                          type="text"
+                          value={v.value}
+                          onChange={(e) => setTestVars((prev) => prev.map((item, j) => j === i ? { ...item, value: e.target.value } : item))}
+                          placeholder="Value"
+                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setTestVars((prev) => prev.filter((_, j) => j !== i))}
+                          className="text-red-400 hover:text-red-600 px-1 cursor-pointer"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setTestVars((prev) => [...prev, { key: '', value: '' }])}
+                  className="w-full text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer py-1"
+                >
+                  + Add Variable
+                </button>
                 <button
                   type="submit"
                   disabled={testSending}

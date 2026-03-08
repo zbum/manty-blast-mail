@@ -43,8 +43,8 @@ export const deleteRecipient = (campaignId: number, recipientId: number) =>
 
 // Preview
 export const previewCampaign = (id: number) => api.post(`/campaigns/${id}/preview`);
-export const previewSend = (id: number, email: string) =>
-  api.post(`/campaigns/${id}/preview/send`, { email });
+export const previewSend = (id: number, email: string, name?: string, variables?: Record<string, string>) =>
+  api.post(`/campaigns/${id}/preview/send`, { email, name, variables });
 
 // Reset
 export const resetCampaign = (id: number) => api.post(`/campaigns/${id}/reset`);
