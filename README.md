@@ -2,6 +2,8 @@
 
 A high-performance bulk email sending system with a modern web UI. Built with Go and React.
 
+**English** | [한국어](README.ko.md) | [사용자 가이드](docs/USER_GUIDE.md)
+
 ## Features
 
 - **Campaign Management** — Create, edit, and manage email campaigns with draft/sending/paused/completed/cancelled lifecycle
