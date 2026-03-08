@@ -3,6 +3,7 @@ pipeline {
 
     tools {
         go 'go-1.26'
+        nodejs 'nodejs-22'
     }
 
     environment {
@@ -22,6 +23,15 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Frontend Build') {
+            steps {
+                dir('web') {
+                    sh 'npm install'
+                    sh 'npm run build'
+                }
             }
         }
 
