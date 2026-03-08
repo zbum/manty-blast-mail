@@ -20,6 +20,10 @@ spec:
           image: registry.manty.co.kr/manty-blast-mail:latest
           ports:
             - containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /etc/manty-blast-mail
+              readOnly: true
           resources:
             requests:
               cpu: 50m
@@ -39,3 +43,7 @@ spec:
               port: 8080
             initialDelaySeconds: 3
             periodSeconds: 5
+      volumes:
+        - name: config
+          secret:
+            secretName: manty-blast-mail-config

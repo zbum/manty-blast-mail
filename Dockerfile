@@ -30,4 +30,4 @@ COPY --from=builder /app/manty-blast-mail .
 
 EXPOSE 8080
 
-ENTRYPOINT ["./manty-blast-mail"]
+ENTRYPOINT ["./manty-blast-mail", "-config", "/etc/manty-blast-mail/config.yaml"]
