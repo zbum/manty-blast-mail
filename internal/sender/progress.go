@@ -32,6 +32,7 @@ type ProgressCollector struct {
 	rate       int
 	status     string
 	results    []SendResult
+	allResults []SendResult
 	mu         sync.Mutex
 	broadcast  func(event string, data interface{})
 }
@@ -57,6 +58,7 @@ func (pc *ProgressCollector) AddResult(result SendResult) {
 		pc.failed++
 	}
 	pc.results = append(pc.results, result)
+	pc.allResults = append(pc.allResults, result)
 }
 
 func (pc *ProgressCollector) SetRate(r int) {
@@ -108,6 +110,14 @@ func (pc *ProgressCollector) GetProgress() ProgressData {
 		Status:      pc.status,
 		Progress:    progress,
 	}
+}
+
+func (pc *ProgressCollector) GetAllResults() []SendResult {
+	pc.mu.Lock()
+	defer pc.mu.Unlock()
+	results := make([]SendResult, len(pc.allResults))
+	copy(results, pc.allResults)
+	return results
 }
 
 func (pc *ProgressCollector) FlushResults() []SendResult {

@@ -439,7 +439,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             onChange={handleFileUpload}
             className="hidden"
           />

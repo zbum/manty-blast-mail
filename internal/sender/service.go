@@ -203,16 +203,16 @@ func (s *Service) runCampaign(ctx context.Context, campaignID uint64, runner *Ca
 	// Wait for all workers to finish
 	wg.Wait()
 
-	// Flush remaining results
-	results := runner.progress.FlushResults()
-	if len(results) > 0 {
+	// Flush remaining results and broadcast
+	remainingResults := runner.progress.FlushResults()
+	if len(remainingResults) > 0 {
 		s.hub.BroadcastToCampaign(campaignID, "send_results", map[string]interface{}{
 			"campaign_id": campaignID,
-			"results":     results,
+			"results":     remainingResults,
 		})
 	}
 
-	// Save results to database
+	// Save all accumulated results to database
 	s.saveResults(campaignID, runner)
 
 	// Determine final status
@@ -247,9 +247,16 @@ func (s *Service) runCampaign(ctx context.Context, campaignID uint64, runner *Ca
 }
 
 func (s *Service) saveResults(campaignID uint64, runner *CampaignRunner) {
-	// Update individual recipient statuses in batches
-	progressData := runner.progress.GetProgress()
-	_ = progressData // Results were already tracked via AddResult
+	repo := recipient.NewRepository(s.db)
+	results := runner.progress.GetAllResults()
+
+	for _, r := range results {
+		if err := repo.UpdateStatus(r.RecipientID, r.Status, r.ErrorMessage); err != nil {
+			log.Error().Err(err).Uint64("recipient_id", r.RecipientID).Msg("failed to update recipient status")
+		}
+	}
+
+	log.Info().Uint64("campaign_id", campaignID).Int("count", len(results)).Msg("saved recipient statuses to database")
 }
 
 // Pause pauses a running campaign.
