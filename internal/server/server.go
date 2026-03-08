@@ -56,6 +56,12 @@ func (s *Server) setupRoutes() {
 	reportHandler := report.NewHandler(s.db)
 	wsHandler := ws.NewHandler(hub, sendService)
 
+	// Health check
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"status":"ok"}`))
+	})
+
 	// API routes
 	r.Route("/api/v1", func(r chi.Router) {
 		// Auth (public)
@@ -68,6 +74,7 @@ func (s *Server) setupRoutes() {
 			r.Post("/auth/logout", authHandler.Logout)
 			r.Get("/auth/me", authHandler.Me)
 			r.Post("/auth/users", authHandler.CreateUser)
+			r.Put("/auth/password", authHandler.ChangePassword)
 
 			// Campaigns
 			r.Get("/campaigns", campaignHandler.List)
