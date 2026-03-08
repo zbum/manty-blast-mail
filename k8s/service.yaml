@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: manty-blast-mail
+  namespace: manty-blast-mail
+  labels:
+    app: manty-blast-mail
+spec:
+  type: ClusterIP
+  selector:
+    app: manty-blast-mail
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manty-blast-mail
+  namespace: manty-blast-mail
+  labels:
+    app: manty-blast-mail
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: manty-blast-mail
+  template:
+    metadata:
+      labels:
+        app: manty-blast-mail
+    spec:
+      containers:
+        - name: manty-blast-mail
+          image: registry.manty.co.kr/manty-blast-mail:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
