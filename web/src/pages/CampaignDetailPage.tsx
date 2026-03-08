@@ -115,7 +115,7 @@ export default function CampaignDetailPage() {
           )}
           <button
             onClick={() => navigate(`/campaigns/${campaignId}/compose`)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
             Compose
           </button>
@@ -143,7 +143,7 @@ export default function CampaignDetailPage() {
               onClick={() => setActiveTab(tab.key)}
               className={`pb-3 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
                 activeTab === tab.key
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -225,7 +225,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
 
@@ -236,7 +236,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
 
@@ -247,7 +247,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
             value={fromName}
             onChange={(e) => setFromName(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
 
@@ -258,7 +258,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
             value={fromEmail}
             onChange={(e) => setFromEmail(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
 
@@ -266,7 +266,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
           <button
             type="submit"
             disabled={saving}
-            className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -289,6 +289,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
   const [recipientPage, setRecipientPage] = useState(1);
   const [manualEmail, setManualEmail] = useState('');
   const [manualName, setManualName] = useState('');
+  const [manualVars, setManualVars] = useState<{ key: string; value: string }[]>([]);
   const [uploadMessage, setUploadMessage] = useState('');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -325,6 +326,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
       setUploadMessage('Recipient added successfully.');
       setManualEmail('');
       setManualName('');
+      setManualVars([]);
       queryClient.invalidateQueries({ queryKey: ['recipients', campaignId] });
       queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
     },
@@ -366,7 +368,15 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
   const handleAddManual = (e: FormEvent) => {
     e.preventDefault();
     if (!manualEmail.trim()) return;
-    addManualMutation.mutate([{ email: manualEmail.trim(), name: manualName.trim() }]);
+    const variables: Record<string, string> = {};
+    for (const v of manualVars) {
+      if (v.key.trim()) variables[v.key.trim()] = v.value;
+    }
+    addManualMutation.mutate([{
+      email: manualEmail.trim(),
+      name: manualName.trim(),
+      variables: Object.keys(variables).length > 0 ? variables : undefined,
+    }]);
   };
 
   const handleClearAll = () => {
@@ -415,7 +425,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
             <h3 className="text-lg font-semibold text-slate-800">Upload CSV</h3>
             <button
               onClick={handleDownloadTemplate}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer flex items-center gap-1"
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer flex items-center gap-1"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -435,7 +445,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
           />
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
+            className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors cursor-pointer"
           >
             <svg className="w-10 h-10 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -445,7 +455,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
             <p className="text-xs text-slate-400 mt-1">or drag and drop</p>
           </div>
           {uploadMutation.isPending && (
-            <p className="text-sm text-blue-600 mt-3">Uploading...</p>
+            <p className="text-sm text-indigo-600 mt-3">Uploading...</p>
           )}
         </div>
 
@@ -461,7 +471,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                 onChange={(e) => setManualEmail(e.target.value)}
                 required
                 placeholder="recipient@example.com"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -471,13 +481,52 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
                 placeholder="John Doe"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
+            {manualVars.length > 0 && (
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-slate-500">Variables</label>
+                {manualVars.map((v, i) => (
+                  <div key={i} className="flex gap-1">
+                    <input
+                      type="text"
+                      value={v.key}
+                      onChange={(e) => setManualVars((prev) => prev.map((item, j) => j === i ? { ...item, key: e.target.value } : item))}
+                      placeholder="Key"
+                      className="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                    <input
+                      type="text"
+                      value={v.value}
+                      onChange={(e) => setManualVars((prev) => prev.map((item, j) => j === i ? { ...item, value: e.target.value } : item))}
+                      placeholder="Value"
+                      className="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setManualVars((prev) => prev.filter((_, j) => j !== i))}
+                      className="text-red-400 hover:text-red-600 px-1 cursor-pointer"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setManualVars((prev) => [...prev, { key: '', value: '' }])}
+              className="w-full text-xs text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer py-1"
+            >
+              + Add Variable
+            </button>
             <button
               type="submit"
               disabled={addManualMutation.isPending}
-              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
+              className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
             >
               {addManualMutation.isPending ? 'Adding...' : 'Add Recipient'}
             </button>
@@ -509,7 +558,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search email or name..."
-                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-56"
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-56"
               />
               <button
                 type="submit"
@@ -624,7 +673,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
-    ready: 'bg-blue-100 text-blue-700',
+    ready: 'bg-indigo-100 text-indigo-700',
     sending: 'bg-amber-100 text-amber-700',
     paused: 'bg-orange-100 text-orange-700',
     completed: 'bg-green-100 text-green-700',

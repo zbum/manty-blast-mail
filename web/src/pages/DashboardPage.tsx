@@ -48,7 +48,7 @@ export default function DashboardPage() {
     {
       label: 'Total Campaigns',
       value: data?.total_campaigns ?? 0,
-      color: 'bg-blue-500',
+      color: 'bg-indigo-500',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -124,7 +124,7 @@ export default function DashboardPage() {
                   fontSize: '13px',
                 }}
               />
-              <Bar dataKey="sent" fill="#3b82f6" name="Sent" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="sent" fill="#6366f1" name="Sent" radius={[4, 4, 0, 0]} />
               <Bar dataKey="failed" fill="#ef4444" name="Failed" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
-    ready: 'bg-blue-100 text-blue-700',
+    ready: 'bg-indigo-100 text-indigo-700',
     sending: 'bg-amber-100 text-amber-700',
     paused: 'bg-orange-100 text-orange-700',
     completed: 'bg-green-100 text-green-700',

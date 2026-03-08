@@ -42,7 +42,7 @@ export default function CampaignListPage() {
         <h2 className="text-2xl font-bold text-slate-800">Campaigns</h2>
         <button
           onClick={() => navigate('/campaigns/new')}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
         >
           + New Campaign
         </button>
@@ -141,7 +141,7 @@ export default function CampaignListPage() {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
-    ready: 'bg-blue-100 text-blue-700',
+    ready: 'bg-indigo-100 text-indigo-700',
     sending: 'bg-amber-100 text-amber-700',
     paused: 'bg-orange-100 text-orange-700',
     completed: 'bg-green-100 text-green-700',

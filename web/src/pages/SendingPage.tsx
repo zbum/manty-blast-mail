@@ -203,7 +203,7 @@ export default function SendingPage() {
         </div>
         <div className="w-full bg-slate-200 rounded-full h-4 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-300"
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
         </div>
@@ -214,7 +214,7 @@ export default function SendingPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Sent" value={sentCount} color="text-green-600" bgColor="bg-green-50" />
         <StatCard label="Failed" value={failCount} color="text-red-600" bgColor="bg-red-50" />
-        <StatCard label="Remaining" value={remaining} color="text-blue-600" bgColor="bg-blue-50" />
+        <StatCard label="Remaining" value={remaining} color="text-indigo-600" bgColor="bg-indigo-50" />
         <StatCard label="Rate" value={`${currentRate}/sec`} color="text-amber-600" bgColor="bg-amber-50" />
       </div>
 
@@ -286,7 +286,7 @@ export default function SendingPage() {
                 max={100}
                 value={rateInput}
                 onChange={(e) => setRateInput(Number(e.target.value))}
-                className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
               />
               <span className="text-sm font-mono text-slate-800 w-16 text-right">
                 {rateInput}/sec
@@ -294,7 +294,7 @@ export default function SendingPage() {
             </div>
             <button
               onClick={handleRateChange}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
+              className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
             >
               Apply Rate
             </button>
@@ -368,7 +368,7 @@ function StatCard({ label, value, color, bgColor }: { label: string; value: numb
 function StatusIndicator({ status }: { status: string }) {
   const config: Record<string, { color: string; label: string; pulse: boolean }> = {
     draft: { color: 'bg-slate-400', label: 'Draft', pulse: false },
-    ready: { color: 'bg-blue-400', label: 'Ready', pulse: false },
+    ready: { color: 'bg-indigo-400', label: 'Ready', pulse: false },
     sending: { color: 'bg-green-500', label: 'Sending', pulse: true },
     paused: { color: 'bg-amber-500', label: 'Paused', pulse: false },
     completed: { color: 'bg-green-600', label: 'Completed', pulse: false },

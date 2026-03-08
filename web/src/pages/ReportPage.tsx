@@ -92,7 +92,7 @@ export default function ReportPage() {
     { name: 'Sent', value: sentCount },
     { name: 'Failed', value: failCount },
   ];
-  const PIE_COLORS = ['#3b82f6', '#ef4444'];
+  const PIE_COLORS = ['#6366f1', '#ef4444'];
 
   const pageSize = 20;
   const totalPages = logsData ? Math.ceil(logsData.total / pageSize) : 0;
@@ -138,9 +138,9 @@ export default function ReportPage() {
               <p className="text-xs font-medium text-slate-500 mb-1">Failed</p>
               <p className="text-2xl font-bold text-red-600">{failCount.toLocaleString()}</p>
             </div>
-            <div className="bg-blue-50 rounded-lg p-4">
+            <div className="bg-indigo-50 rounded-lg p-4">
               <p className="text-xs font-medium text-slate-500 mb-1">Total Recipients</p>
-              <p className="text-2xl font-bold text-blue-600">{(campaign.total_count ?? 0).toLocaleString()}</p>
+              <p className="text-2xl font-bold text-indigo-600">{(campaign.total_count ?? 0).toLocaleString()}</p>
             </div>
             <div className="bg-amber-50 rounded-lg p-4">
               <p className="text-xs font-medium text-slate-500 mb-1">Success Rate</p>

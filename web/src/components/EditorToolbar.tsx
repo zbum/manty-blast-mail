@@ -26,7 +26,7 @@ function ToolbarButton({
       title={title}
       className={`p-1.5 rounded text-sm transition-colors cursor-pointer ${
         isActive
-          ? 'bg-blue-100 text-blue-700'
+          ? 'bg-indigo-100 text-indigo-700'
           : 'text-slate-600 hover:bg-slate-200 hover:text-slate-800'
       } ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
     >
@@ -91,7 +91,7 @@ function LinkPopover({
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         placeholder="https://example.com"
-        className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 mb-2"
+        className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 mb-2"
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -110,7 +110,7 @@ function LinkPopover({
             if (url) editor.chain().focus().setLink({ href: url }).run();
             onClose();
           }}
-          className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 cursor-pointer"
+          className="px-3 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700 cursor-pointer"
         >
           Apply
         </button>

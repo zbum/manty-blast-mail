@@ -352,10 +352,10 @@ export default function ComposePage() {
             <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-4">
               <p className="text-xs text-slate-500">
                 <span className="font-semibold text-slate-600">Template Variables</span> (case-sensitive):
-                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-blue-600 mx-1">{'{{.Name}}'}</code>
-                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-blue-600 mx-1">{'{{.Email}}'}</code>
+                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600 mx-1">{'{{.Name}}'}</code>
+                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600 mx-1">{'{{.Email}}'}</code>
                 and custom variables like
-                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-blue-600 mx-1">{'{{.Company}}'}</code>
+                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600 mx-1">{'{{.Company}}'}</code>
               </p>
             </div>
 
@@ -369,7 +369,7 @@ export default function ComposePage() {
                 value={mimeContent}
                 onChange={(e) => { setMimeContent(e.target.value); setDirty(true); }}
                 placeholder="Enter raw MIME content..."
-                className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
               />
             )}
           </div>
@@ -384,7 +384,7 @@ export default function ComposePage() {
                   onChange={(e) => { setIcalEnabled(e.target.checked); setDirty(true); }}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
               </label>
               <span className="text-sm font-medium text-slate-700">Include iCalendar (.ics) attachment</span>
             </div>
@@ -424,7 +424,7 @@ export default function ComposePage() {
                         value={icsFields.summary}
                         onChange={(e) => updateIcsField('summary', e.target.value)}
                         placeholder="e.g. Team Meeting"
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -434,7 +434,7 @@ export default function ComposePage() {
                           type="datetime-local"
                           value={icsFields.dtstart}
                           onChange={(e) => updateIcsField('dtstart', e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -443,7 +443,7 @@ export default function ComposePage() {
                           type="datetime-local"
                           value={icsFields.dtend}
                           onChange={(e) => updateIcsField('dtend', e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -454,7 +454,7 @@ export default function ComposePage() {
                         value={icsFields.location}
                         onChange={(e) => updateIcsField('location', e.target.value)}
                         placeholder="e.g. Conference Room A"
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -464,7 +464,7 @@ export default function ComposePage() {
                         onChange={(e) => updateIcsField('description', e.target.value)}
                         placeholder="Event description..."
                         rows={3}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -475,7 +475,7 @@ export default function ComposePage() {
                           value={icsFields.organizerName}
                           onChange={(e) => updateIcsField('organizerName', e.target.value)}
                           placeholder="e.g. John Doe"
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -485,7 +485,7 @@ export default function ComposePage() {
                           value={icsFields.organizerEmail}
                           onChange={(e) => updateIcsField('organizerEmail', e.target.value)}
                           placeholder="e.g. john@example.com"
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -521,7 +521,7 @@ export default function ComposePage() {
                     value={icalContent}
                     onChange={(e) => { setIcalContent(e.target.value); setDirty(true); }}
                     placeholder={'BEGIN:VCALENDAR\nVERSION:2.0\n...'}
-                    className="w-full h-40 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                    className="w-full h-40 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
                   />
                 )}
               </div>
@@ -537,7 +537,7 @@ export default function ComposePage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+              className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
               {saving ? 'Saving...' : 'Save Content'}
             </button>
@@ -564,14 +564,14 @@ export default function ComposePage() {
                   onChange={(e) => setTestEmail(e.target.value)}
                   placeholder="test@example.com"
                   required
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
                 <input
                   type="text"
                   value={testName}
                   onChange={(e) => setTestName(e.target.value)}
                   placeholder="Name (optional)"
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
                 {testVars.length > 0 && (
                   <div className="space-y-2">
@@ -583,14 +583,14 @@ export default function ComposePage() {
                           value={v.key}
                           onChange={(e) => setTestVars((prev) => prev.map((item, j) => j === i ? { ...item, key: e.target.value } : item))}
                           placeholder="Key"
-                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                         <input
                           type="text"
                           value={v.value}
                           onChange={(e) => setTestVars((prev) => prev.map((item, j) => j === i ? { ...item, value: e.target.value } : item))}
                           placeholder="Value"
-                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                         <button
                           type="button"
@@ -608,7 +608,7 @@ export default function ComposePage() {
                 <button
                   type="button"
                   onClick={() => setTestVars((prev) => [...prev, { key: '', value: '' }])}
-                  className="w-full text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer py-1"
+                  className="w-full text-xs text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer py-1"
                 >
                   + Add Variable
                 </button>
@@ -677,7 +677,7 @@ export default function ComposePage() {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
-    ready: 'bg-blue-100 text-blue-700',
+    ready: 'bg-indigo-100 text-indigo-700',
     sending: 'bg-amber-100 text-amber-700',
     paused: 'bg-orange-100 text-orange-700',
     completed: 'bg-green-100 text-green-700',
