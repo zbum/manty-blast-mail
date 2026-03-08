@@ -10,6 +10,7 @@ import {
   addRecipientsManual,
   getRecipients,
   deleteRecipients,
+  deleteRecipient,
 } from '../api/client';
 
 interface Campaign {
@@ -34,6 +35,7 @@ interface Recipient {
   email: string;
   name: string;
   variables: Record<string, string>;
+  status: string;
 }
 
 type Tab = 'info' | 'recipients';
@@ -288,6 +290,8 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
   const [manualEmail, setManualEmail] = useState('');
   const [manualName, setManualName] = useState('');
   const [uploadMessage, setUploadMessage] = useState('');
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   const { data: recipientData, isLoading: recipientsLoading } = useQuery<{
     data: Recipient[];
@@ -296,9 +300,9 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
     page_size: number;
     total_pages: number;
   }>({
-    queryKey: ['recipients', campaignId, recipientPage],
+    queryKey: ['recipients', campaignId, recipientPage, search],
     queryFn: async () => {
-      const res = await getRecipients(campaignId, recipientPage);
+      const res = await getRecipients(campaignId, recipientPage, search);
       return res.data;
     },
   });
@@ -341,6 +345,17 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (recipientId: number) => deleteRecipient(campaignId, recipientId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipients', campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
+    },
+    onError: (err: any) => {
+      setUploadMessage(err.response?.data?.error || 'Failed to delete recipient.');
+    },
+  });
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -359,7 +374,36 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
     clearMutation.mutate();
   };
 
+  const handleDeleteRecipient = (recipientId: number) => {
+    if (!confirm('Are you sure you want to delete this recipient?')) return;
+    deleteMutation.mutate(recipientId);
+  };
+
+  const handleDownloadTemplate = () => {
+    const csv = 'email,name\nuser1@example.com,John Doe\nuser2@example.com,Jane Smith\n';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'recipients_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault();
+    setSearch(searchInput);
+    setRecipientPage(1);
+  };
+
   const totalPages = recipientData ? recipientData.total_pages : 0;
+
+  const recipientStatusStyles: Record<string, string> = {
+    pending: 'bg-slate-100 text-slate-700',
+    sent: 'bg-green-100 text-green-700',
+    failed: 'bg-red-100 text-red-700',
+    skipped: 'bg-amber-100 text-amber-700',
+  };
 
   return (
     <div className="space-y-6">
@@ -367,7 +411,18 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* File Upload */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Upload CSV</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-slate-800">Upload CSV</h3>
+            <button
+              onClick={handleDownloadTemplate}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download Template
+            </button>
+          </div>
           <p className="text-sm text-slate-500 mb-4">
             Upload a CSV file with columns: email, name (and optional variable columns).
           </p>
@@ -447,12 +502,38 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
           <h3 className="text-lg font-semibold text-slate-800">
             Recipients {recipientData ? `(${recipientData.total.toLocaleString()})` : ''}
           </h3>
-          <button
-            onClick={handleClearAll}
-            className="text-sm text-red-600 hover:text-red-700 font-medium cursor-pointer"
-          >
-            Clear All
-          </button>
+          <div className="flex items-center gap-4">
+            <form onSubmit={handleSearch} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search email or name..."
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-56"
+              />
+              <button
+                type="submit"
+                className="px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+              >
+                Search
+              </button>
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => { setSearch(''); setSearchInput(''); setRecipientPage(1); }}
+                  className="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-700 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+            </form>
+            <button
+              onClick={handleClearAll}
+              className="text-sm text-red-600 hover:text-red-700 font-medium cursor-pointer"
+            >
+              Clear All
+            </button>
+          </div>
         </div>
 
         {recipientsLoading ? (
@@ -466,6 +547,8 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Variables</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -478,11 +561,28 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                           ? JSON.stringify(r.variables)
                           : '-'}
                       </td>
+                      <td className="px-6 py-3 text-sm">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${recipientStatusStyles[r.status] ?? 'bg-slate-100 text-slate-700'}`}>
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 text-sm">
+                        <button
+                          onClick={() => handleDeleteRecipient(r.id)}
+                          disabled={deleteMutation.isPending}
+                          className="text-red-500 hover:text-red-700 transition-colors cursor-pointer disabled:opacity-50"
+                          title="Delete recipient"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {(recipientData?.data ?? []).length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-6 py-8 text-center text-sm text-slate-500">
+                      <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-500">
                         No recipients added yet.
                       </td>
                     </tr>

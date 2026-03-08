@@ -232,6 +232,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("pageSize"))
+	search := r.URL.Query().Get("search")
 	if page < 1 {
 		page = 1
 	}
@@ -239,7 +240,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		pageSize = 20
 	}
 
-	recipients, total, err := h.repo.FindByCampaignID(campaignID, page, pageSize)
+	recipients, total, err := h.repo.FindByCampaignID(campaignID, page, pageSize, search)
 	if err != nil {
 		http.Error(w, `{"error":"failed to fetch recipients"}`, http.StatusInternalServerError)
 		return
@@ -258,6 +259,55 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		PageSize:   pageSize,
 		TotalPages: totalPages,
 	})
+}
+
+// Delete removes a single recipient from a campaign.
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(auth.UserIDKey).(uint64)
+	if !ok {
+		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+		return
+	}
+
+	campaignID, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		http.Error(w, `{"error":"invalid campaign id"}`, http.StatusBadRequest)
+		return
+	}
+
+	recipientID, err := strconv.ParseUint(chi.URLParam(r, "recipientId"), 10, 64)
+	if err != nil {
+		http.Error(w, `{"error":"invalid recipient id"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Verify campaign belongs to user
+	c, err := h.campaignRepo.FindByID(campaignID)
+	if err != nil {
+		http.Error(w, `{"error":"campaign not found"}`, http.StatusNotFound)
+		return
+	}
+	if c.UserID != userID {
+		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
+		return
+	}
+
+	if err := h.repo.DeleteByID(recipientID, campaignID); err != nil {
+		http.Error(w, `{"error":"failed to delete recipient"}`, http.StatusInternalServerError)
+		return
+	}
+
+	// Decrease campaign total count
+	if c.TotalCount > 0 {
+		c.TotalCount--
+	}
+	if err := h.campaignRepo.Update(c); err != nil {
+		http.Error(w, `{"error":"failed to update campaign count"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{"message":"recipient deleted"}`))
 }
 
 // DeleteAll removes all recipients for a campaign and resets the total count.

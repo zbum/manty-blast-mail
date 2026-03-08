@@ -11,12 +11,17 @@ func NewRepository(db *gorm.DB) *Repository {
 }
 
 // FindByCampaignID returns a paginated list of recipients for the given campaign,
-// along with the total count.
-func (r *Repository) FindByCampaignID(campaignID uint64, page, pageSize int) ([]Recipient, int64, error) {
+// along with the total count. If search is non-empty, filters by email or name.
+func (r *Repository) FindByCampaignID(campaignID uint64, page, pageSize int, search string) ([]Recipient, int64, error) {
 	var recipients []Recipient
 	var total int64
 
 	query := r.db.Model(&Recipient{}).Where("campaign_id = ?", campaignID)
+
+	if search != "" {
+		like := "%" + search + "%"
+		query = query.Where("email LIKE ? OR name LIKE ?", like, like)
+	}
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -64,6 +69,11 @@ func (r *Repository) UpdateStatus(id uint64, status string, errorMsg string) err
 		"error_message": errorMsg,
 	}
 	return r.db.Model(&Recipient{}).Where("id = ?", id).Updates(updates).Error
+}
+
+// DeleteByID deletes a single recipient by ID and campaign ID.
+func (r *Repository) DeleteByID(id uint64, campaignID uint64) error {
+	return r.db.Where("id = ? AND campaign_id = ?", id, campaignID).Delete(&Recipient{}).Error
 }
 
 // DeleteByCampaignID deletes all recipients for the given campaign.

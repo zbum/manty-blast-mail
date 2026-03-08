@@ -91,6 +91,7 @@ func (s *Server) setupRoutes() {
 			r.Post("/campaigns/{id}/recipients/manual", recipientHandler.Manual)
 			r.Get("/campaigns/{id}/recipients", recipientHandler.List)
 			r.Delete("/campaigns/{id}/recipients", recipientHandler.DeleteAll)
+			r.Delete("/campaigns/{id}/recipients/{recipientId}", recipientHandler.Delete)
 
 			// Preview
 			r.Post("/campaigns/{id}/preview", campaignHandler.Preview)

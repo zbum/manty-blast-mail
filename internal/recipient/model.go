@@ -8,11 +8,11 @@ import (
 
 type Recipient struct {
 	ID           uint64    `json:"id" gorm:"primaryKey"`
-	CampaignID   uint64    `json:"campaign_id"`
-	Email        string    `json:"email"`
-	Name         string    `json:"name"`
+	CampaignID   uint64    `json:"campaign_id" gorm:"index:idx_recipients_campaign_status;index:idx_recipients_campaign_email;index:idx_recipients_campaign_name"`
+	Email        string    `json:"email" gorm:"index:idx_recipients_campaign_email"`
+	Name         string    `json:"name" gorm:"index:idx_recipients_campaign_name"`
 	Variables    JSONMap   `json:"variables" gorm:"type:json"`
-	Status       string    `json:"status" gorm:"type:enum('pending','sent','failed','skipped');default:'pending'"`
+	Status       string    `json:"status" gorm:"type:enum('pending','sent','failed','skipped');default:'pending';index:idx_recipients_campaign_status"`
 	ErrorMessage string    `json:"error_message,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`

@@ -34,10 +34,12 @@ export const uploadRecipients = (id: number, file: File) => {
 };
 export const addRecipientsManual = (id: number, recipients: any[]) =>
   api.post(`/campaigns/${id}/recipients/manual`, { recipients });
-export const getRecipients = (id: number, page = 1) =>
-  api.get(`/campaigns/${id}/recipients?page=${page}`);
+export const getRecipients = (id: number, page = 1, search = '') =>
+  api.get(`/campaigns/${id}/recipients?page=${page}${search ? `&search=${encodeURIComponent(search)}` : ''}`);
 export const deleteRecipients = (id: number) =>
   api.delete(`/campaigns/${id}/recipients`);
+export const deleteRecipient = (campaignId: number, recipientId: number) =>
+  api.delete(`/campaigns/${campaignId}/recipients/${recipientId}`);
 
 // Preview
 export const previewCampaign = (id: number) => api.post(`/campaigns/${id}/preview`);
