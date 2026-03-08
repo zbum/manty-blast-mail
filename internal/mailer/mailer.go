@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"mail-sender/internal/config"
+	"github.com/zbum/manty-blast-mail/internal/config"
 )
 
 type Mailer struct {

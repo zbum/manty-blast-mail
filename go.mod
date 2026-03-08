@@ -1,4 +1,4 @@
-module mail-sender
+module github.com/zbum/manty-blast-mail
 
 go 1.26
 

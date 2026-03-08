@@ -10,15 +10,15 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	mailsender "mail-sender"
-	"mail-sender/internal/auth"
-	"mail-sender/internal/campaign"
-	"mail-sender/internal/config"
-	"mail-sender/internal/mailer"
-	"mail-sender/internal/recipient"
-	"mail-sender/internal/report"
-	"mail-sender/internal/sender"
-	ws "mail-sender/internal/websocket"
+	mailsender "github.com/zbum/manty-blast-mail"
+	"github.com/zbum/manty-blast-mail/internal/auth"
+	"github.com/zbum/manty-blast-mail/internal/campaign"
+	"github.com/zbum/manty-blast-mail/internal/config"
+	"github.com/zbum/manty-blast-mail/internal/mailer"
+	"github.com/zbum/manty-blast-mail/internal/recipient"
+	"github.com/zbum/manty-blast-mail/internal/report"
+	"github.com/zbum/manty-blast-mail/internal/sender"
+	ws "github.com/zbum/manty-blast-mail/internal/websocket"
 )
 
 type Server struct {

@@ -14,11 +14,11 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"mail-sender/internal/campaign"
-	"mail-sender/internal/config"
-	"mail-sender/internal/mailer"
-	"mail-sender/internal/recipient"
-	ws "mail-sender/internal/websocket"
+	"github.com/zbum/manty-blast-mail/internal/campaign"
+	"github.com/zbum/manty-blast-mail/internal/config"
+	"github.com/zbum/manty-blast-mail/internal/mailer"
+	"github.com/zbum/manty-blast-mail/internal/recipient"
+	ws "github.com/zbum/manty-blast-mail/internal/websocket"
 )
 
 // CampaignRunner manages the sending lifecycle for a single campaign.

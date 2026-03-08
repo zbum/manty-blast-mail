@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 
-	"mail-sender/internal/auth"
+	"github.com/zbum/manty-blast-mail/internal/auth"
 )
 
 // Handler provides HTTP handlers for report endpoints.

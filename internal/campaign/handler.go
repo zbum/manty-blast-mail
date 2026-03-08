@@ -8,8 +8,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 
-	"mail-sender/internal/auth"
-	"mail-sender/internal/mailer"
+	"github.com/zbum/manty-blast-mail/internal/auth"
+	"github.com/zbum/manty-blast-mail/internal/mailer"
 )
 
 type Handler struct {

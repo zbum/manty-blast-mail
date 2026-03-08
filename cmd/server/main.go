@@ -9,8 +9,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"mail-sender/internal/config"
-	"mail-sender/internal/server"
+	"github.com/zbum/manty-blast-mail/internal/config"
+	"github.com/zbum/manty-blast-mail/internal/server"
 )
 
 func main() {

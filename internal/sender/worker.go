@@ -8,8 +8,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"mail-sender/internal/mailer"
-	"mail-sender/internal/recipient"
+	"github.com/zbum/manty-blast-mail/internal/mailer"
+	"github.com/zbum/manty-blast-mail/internal/recipient"
 )
 
 // SendJob represents a single email send job for a worker.
