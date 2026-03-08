@@ -50,6 +50,9 @@ func main() {
 		hashed, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 		db.Create(&auth.User{Username: "admin", Password: string(hashed), Role: "admin"})
 		log.Info().Msg("default admin user created (username: admin, password: admin)")
+	} else {
+		// Ensure existing admin user has admin role
+		db.Model(&auth.User{}).Where("username = ? AND (role = '' OR role = 'user')", "admin").Update("role", "admin")
 	}
 
 	srv := server.New(cfg, db)
