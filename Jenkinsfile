@@ -66,7 +66,6 @@ pipeline {
                 script {
                     sh """
                         kubectl --kubeconfig=\$KUBECONFIG apply -f k8s/namespace.yaml
-                        kubectl --kubeconfig=\$KUBECONFIG apply -f k8s/secret-config.yaml
                         kubectl --kubeconfig=\$KUBECONFIG apply -f k8s/deployment.yaml
                         kubectl --kubeconfig=\$KUBECONFIG apply -f k8s/service.yaml
                         kubectl --kubeconfig=\$KUBECONFIG apply -f k8s/ingress.yaml
