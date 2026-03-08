@@ -3,7 +3,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
+import ImageResize from 'tiptap-extension-resize-image';
 import TextAlign from '@tiptap/extension-text-align';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
@@ -33,9 +33,8 @@ export default function EmailEditor({ content, onContentChange }: EmailEditorPro
         openOnClick: false,
         HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
       }),
-      Image.configure({
+      ImageResize.configure({
         inline: false,
-        allowBase64: false,
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
@@ -60,6 +59,36 @@ export default function EmailEditor({ content, onContentChange }: EmailEditorPro
     onUpdate: ({ editor }) => {
       isInternalUpdate.current = true;
       onContentChange(editor.getHTML());
+    },
+    editorProps: {
+      handleDrop: (_view, event) => {
+        // Block image file drops (would produce base64)
+        const files = event.dataTransfer?.files;
+        if (files && files.length > 0) {
+          for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith('image/')) {
+              event.preventDefault();
+              alert('Image file drops are not supported. Please use an image URL instead.');
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+      handlePaste: (_view, event) => {
+        // Block pasted image files (would produce base64)
+        const files = event.clipboardData?.files;
+        if (files && files.length > 0) {
+          for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith('image/')) {
+              event.preventDefault();
+              alert('Image paste is not supported. Please use an image URL instead.');
+              return true;
+            }
+          }
+        }
+        return false;
+      },
     },
   });
 

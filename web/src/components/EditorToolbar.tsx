@@ -218,8 +218,13 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         </div>
         <ToolbarButton
           onClick={() => {
-            const url = window.prompt('Enter image URL:');
-            if (url) editor.chain().focus().setImage({ src: url }).run();
+            const url = window.prompt('Enter image URL (must be https://):');
+            if (!url) return;
+            if (url.startsWith('data:') || !url.startsWith('http')) {
+              alert('Only external image URLs (http/https) are allowed. Base64 images are not supported.');
+              return;
+            }
+            (editor.chain().focus() as any).setImage({ src: url }).run();
           }}
           title="Image"
         >

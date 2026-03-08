@@ -154,6 +154,7 @@ export default function ComposePage() {
   const [icsPreviewOpen, setIcsPreviewOpen] = useState(false);
   const icsInitialized = useRef(false);
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(true);
   const [message, setMessage] = useState('');
   const [previewHtml, setPreviewHtml] = useState('');
   const [showPreview, setShowPreview] = useState(false);
@@ -187,6 +188,7 @@ export default function ComposePage() {
         setIcsMode('raw');
       }
       icsInitialized.current = true;
+      setDirty(false);
     }
   }, [campaign]);
 
@@ -227,6 +229,7 @@ export default function ComposePage() {
     try {
       await updateCampaign(campaignId, buildPayload());
       queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
+      setDirty(false);
       setMessage('Content saved successfully.');
     } catch (err: any) {
       setMessage(err.response?.data?.error || 'Failed to save content.');
@@ -266,6 +269,7 @@ export default function ComposePage() {
 
   const updateIcsField = (field: keyof IcsFields, value: string) => {
     setIcsFields((prev) => ({ ...prev, [field]: value }));
+    setDirty(true);
   };
 
   if (isLoading) {
@@ -317,7 +321,7 @@ export default function ComposePage() {
               <label className="text-sm font-medium text-slate-700">Mode:</label>
               <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
                 <button
-                  onClick={() => setMode('html')}
+                  onClick={() => { setMode('html'); setDirty(true); }}
                   className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                     mode === 'html'
                       ? 'bg-white text-slate-800 shadow-sm'
@@ -327,7 +331,7 @@ export default function ComposePage() {
                   HTML
                 </button>
                 <button
-                  onClick={() => setMode('mime')}
+                  onClick={() => { setMode('mime'); setDirty(true); }}
                   className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                     mode === 'mime'
                       ? 'bg-white text-slate-800 shadow-sm'
@@ -342,12 +346,12 @@ export default function ComposePage() {
             {mode === 'html' ? (
               <EmailEditor
                 content={htmlContent}
-                onContentChange={setHtmlContent}
+                onContentChange={(html) => { setHtmlContent(html); setDirty(true); }}
               />
             ) : (
               <textarea
                 value={mimeContent}
-                onChange={(e) => setMimeContent(e.target.value)}
+                onChange={(e) => { setMimeContent(e.target.value); setDirty(true); }}
                 placeholder="Enter raw MIME content..."
                 className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
               />
@@ -361,7 +365,7 @@ export default function ComposePage() {
                 <input
                   type="checkbox"
                   checked={icalEnabled}
-                  onChange={(e) => setIcalEnabled(e.target.checked)}
+                  onChange={(e) => { setIcalEnabled(e.target.checked); setDirty(true); }}
                   className="sr-only peer"
                 />
                 <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
@@ -499,7 +503,7 @@ export default function ComposePage() {
                 ) : (
                   <textarea
                     value={icalContent}
-                    onChange={(e) => setIcalContent(e.target.value)}
+                    onChange={(e) => { setIcalContent(e.target.value); setDirty(true); }}
                     placeholder={'BEGIN:VCALENDAR\nVERSION:2.0\n...'}
                     className="w-full h-40 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
                   />
@@ -532,23 +536,29 @@ export default function ComposePage() {
           {/* Test Send */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
             <h3 className="text-sm font-semibold text-slate-800 mb-3">Test Send</h3>
-            <form onSubmit={handleTestSend} className="space-y-3">
-              <input
-                type="email"
-                value={testEmail}
-                onChange={(e) => setTestEmail(e.target.value)}
-                placeholder="test@example.com"
-                required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <button
-                type="submit"
-                disabled={testSending}
-                className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
-              >
-                {testSending ? 'Sending...' : 'Send Test Email'}
-              </button>
-            </form>
+            {dirty ? (
+              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                Please save content first before sending a test email.
+              </p>
+            ) : (
+              <form onSubmit={handleTestSend} className="space-y-3">
+                <input
+                  type="email"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  placeholder="test@example.com"
+                  required
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  disabled={testSending}
+                  className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                >
+                  {testSending ? 'Sending...' : 'Send Test Email'}
+                </button>
+              </form>
+            )}
           </div>
 
           {/* Campaign Info */}
