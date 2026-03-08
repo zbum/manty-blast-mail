@@ -349,6 +349,16 @@ export default function ComposePage() {
               </div>
             </div>
 
+            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-4">
+              <p className="text-xs text-slate-500">
+                <span className="font-semibold text-slate-600">Template Variables</span> (case-sensitive):
+                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-blue-600 mx-1">{'{{.Name}}'}</code>
+                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-blue-600 mx-1">{'{{.Email}}'}</code>
+                and custom variables like
+                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-blue-600 mx-1">{'{{.Company}}'}</code>
+              </p>
+            </div>
+
             {mode === 'html' ? (
               <EmailEditor
                 content={htmlContent}
