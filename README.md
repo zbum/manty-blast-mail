@@ -2,6 +2,8 @@
 
 A high-performance bulk email sending system with a modern web UI. Built with Go and React.
 
+**Online Demo**: [https://manty-blast-mail.manty.co.kr](https://manty-blast-mail.manty.co.kr)
+
 **English** | [한국어](README.ko.md) | [사용자 가이드](docs/USER_GUIDE.md)
 
 ## Features

@@ -2,8 +2,10 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -12,6 +14,7 @@ type User struct {
 	ID       uint64 `json:"id" gorm:"primaryKey"`
 	Username string `json:"username" gorm:"uniqueIndex;size:255"`
 	Password string `json:"-" gorm:"size:255"`
+	Role     string `json:"role" gorm:"size:20;default:'user'"`
 }
 
 type Handler struct {
@@ -31,6 +34,7 @@ type loginRequest struct {
 type meResponse struct {
 	ID       uint64 `json:"id"`
 	Username string `json:"username"`
+	Role     string `json:"role"`
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +76,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(meResponse{
 		ID:       user.ID,
 		Username: user.Username,
+		Role:     user.Role,
 	})
 }
 
@@ -98,7 +103,27 @@ type createUserRequest struct {
 	Password string `json:"password"`
 }
 
+func (h *Handler) requireAdmin(r *http.Request) (*User, error) {
+	userID, ok := r.Context().Value(UserIDKey).(uint64)
+	if !ok {
+		return nil, fmt.Errorf("unauthorized")
+	}
+	var user User
+	if err := h.db.First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("user not found")
+	}
+	if user.Role != "admin" {
+		return nil, fmt.Errorf("forbidden")
+	}
+	return &user, nil
+}
+
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	if _, err := h.requireAdmin(r); err != nil {
+		http.Error(w, `{"error":"admin access required"}`, http.StatusForbidden)
+		return
+	}
+
 	var req createUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, `{"error":"invalid request body"}`, http.StatusBadRequest)
@@ -116,7 +141,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := User{Username: req.Username, Password: string(hashed)}
+	user := User{Username: req.Username, Password: string(hashed), Role: "user"}
 	if err := h.db.Create(&user).Error; err != nil {
 		http.Error(w, `{"error":"username already exists"}`, http.StatusConflict)
 		return
@@ -127,7 +152,59 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(meResponse{
 		ID:       user.ID,
 		Username: user.Username,
+		Role:     user.Role,
 	})
+}
+
+func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
+	if _, err := h.requireAdmin(r); err != nil {
+		http.Error(w, `{"error":"admin access required"}`, http.StatusForbidden)
+		return
+	}
+
+	var users []User
+	h.db.Order("id ASC").Find(&users)
+
+	type userItem struct {
+		ID       uint64 `json:"id"`
+		Username string `json:"username"`
+		Role     string `json:"role"`
+	}
+	result := make([]userItem, len(users))
+	for i, u := range users {
+		result[i] = userItem{ID: u.ID, Username: u.Username, Role: u.Role}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	admin, err := h.requireAdmin(r)
+	if err != nil {
+		http.Error(w, `{"error":"admin access required"}`, http.StatusForbidden)
+		return
+	}
+
+	idStr := chi.URLParam(r, "userId")
+	var userID uint64
+	if _, err := fmt.Sscanf(idStr, "%d", &userID); err != nil {
+		http.Error(w, `{"error":"invalid user id"}`, http.StatusBadRequest)
+		return
+	}
+
+	if userID == admin.ID {
+		http.Error(w, `{"error":"cannot delete yourself"}`, http.StatusBadRequest)
+		return
+	}
+
+	if err := h.db.Delete(&User{}, userID).Error; err != nil {
+		http.Error(w, `{"error":"failed to delete user"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{"message":"user deleted"}`))
 }
 
 type changePasswordRequest struct {
@@ -193,5 +270,6 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(meResponse{
 		ID:       user.ID,
 		Username: user.Username,
+		Role:     user.Role,
 	})
 }

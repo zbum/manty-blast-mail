@@ -25,7 +25,7 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className="w-64 bg-slate-800 text-white flex flex-col flex-shrink-0">
         <div className="px-6 py-5 border-b border-slate-700">
-          <h1 className="text-xl font-bold tracking-tight">Mail Sender</h1>
+          <h1 className="text-xl font-bold tracking-tight">Manty Blast Mail</h1>
           <p className="text-xs text-slate-400 mt-1">Bulk Email Platform</p>
         </div>
 

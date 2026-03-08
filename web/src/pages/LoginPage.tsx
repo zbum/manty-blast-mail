@@ -31,7 +31,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-800">Mail Sender</h1>
+            <h1 className="text-2xl font-bold text-slate-800">Manty Blast Mail</h1>
             <p className="text-sm text-slate-500 mt-1">Sign in to your account</p>
           </div>
 

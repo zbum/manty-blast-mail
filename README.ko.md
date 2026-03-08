@@ -2,6 +2,8 @@
 
 Go와 React로 구축된 고성능 대량 이메일 발송 시스템입니다.
 
+**온라인 데모**: [https://manty-blast-mail.manty.co.kr](https://manty-blast-mail.manty.co.kr)
+
 [English](README.md) | **한국어**
 
 ## 주요 기능

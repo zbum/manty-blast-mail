@@ -48,7 +48,7 @@ func main() {
 	db.Model(&auth.User{}).Count(&count)
 	if count == 0 {
 		hashed, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
-		db.Create(&auth.User{Username: "admin", Password: string(hashed)})
+		db.Create(&auth.User{Username: "admin", Password: string(hashed), Role: "admin"})
 		log.Info().Msg("default admin user created (username: admin, password: admin)")
 	}
 
