@@ -18,6 +18,9 @@ spec:
       containers:
         - name: manty-blast-mail
           image: registry.manty.co.kr/manty-blast-mail:latest
+          env:
+            - name: TZ
+              value: "Asia/Seoul"
           ports:
             - containerPort: 8080
           volumeMounts:
