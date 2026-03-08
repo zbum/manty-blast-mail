@@ -7,7 +7,7 @@ database:
   port: 3306
   user: "root"
   password: "your-db-password"
-  name: "mail_sender"
+  name: "manty_blast_mail"
 
 smtp:
   host: "smtp.example.com"
