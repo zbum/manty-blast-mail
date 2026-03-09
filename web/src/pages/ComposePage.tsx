@@ -118,6 +118,7 @@ function buildIcsString(f: IcsFields): string {
   if (start) lines.push(`DTSTART;TZID=Asia/Seoul:${start}`);
   if (end) lines.push(`DTEND;TZID=Asia/Seoul:${end}`);
   if (f.summary) lines.push(`SUMMARY:${f.summary}`);
+  if (f.location) lines.push(`LOCATION:${f.location}`);
   lines.push(`UID:${uid}`);
   lines.push('SEQUENCE:0');
   if (f.description) lines.push(`DESCRIPTION:${f.description.replace(/\n/g, '\\n')}`);
