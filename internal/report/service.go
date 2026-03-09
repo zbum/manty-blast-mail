@@ -33,6 +33,11 @@ func (s *Service) GetDashboardStats(userID uint64) (*DashboardStats, error) {
 	return s.repo.GetDashboardStats(userID)
 }
 
+// GetDashboardStatsAll returns aggregate dashboard statistics for all campaigns (admin).
+func (s *Service) GetDashboardStatsAll() (*DashboardStats, error) {
+	return s.repo.GetDashboardStatsAll()
+}
+
 // ExportCSV writes send log data for a campaign as CSV to the given writer.
 func (s *Service) ExportCSV(campaignID uint64, w io.Writer) error {
 	logs, err := s.repo.GetLogsByCampaignIDAll(campaignID)

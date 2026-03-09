@@ -23,6 +23,16 @@ func (s *Service) List(userID uint64, page, pageSize int) ([]Campaign, int64, er
 	return s.repo.FindAllByUserID(userID, page, pageSize)
 }
 
+func (s *Service) ListAll(page, pageSize int) ([]Campaign, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+	return s.repo.FindAll(page, pageSize)
+}
+
 func (s *Service) GetByID(id uint64) (*Campaign, error) {
 	return s.repo.FindByID(id)
 }

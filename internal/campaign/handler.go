@@ -39,10 +39,19 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
+
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("pageSize"))
 
-	campaigns, total, err := h.service.List(userID, page, pageSize)
+	var campaigns []Campaign
+	var total int64
+	var err error
+	if role == "admin" {
+		campaigns, total, err = h.service.ListAll(page, pageSize)
+	} else {
+		campaigns, total, err = h.service.List(userID, page, pageSize)
+	}
 	if err != nil {
 		http.Error(w, `{"error":"failed to fetch campaigns"}`, http.StatusInternalServerError)
 		return
@@ -102,6 +111,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 		return
 	}
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
 
 	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
@@ -115,7 +125,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.UserID != userID {
+	if role != "admin" && c.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
@@ -130,6 +140,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 		return
 	}
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
 
 	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
@@ -143,7 +154,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if existing.UserID != userID {
+	if role != "admin" && existing.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
@@ -205,6 +216,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 		return
 	}
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
 
 	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
@@ -218,7 +230,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if existing.UserID != userID {
+	if role != "admin" && existing.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
@@ -238,6 +250,7 @@ func (h *Handler) ResetToDraft(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 		return
 	}
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
 
 	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
@@ -251,7 +264,7 @@ func (h *Handler) ResetToDraft(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.UserID != userID {
+	if role != "admin" && c.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
@@ -311,6 +324,7 @@ func (h *Handler) Preview(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 		return
 	}
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
 
 	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
@@ -324,7 +338,7 @@ func (h *Handler) Preview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.UserID != userID {
+	if role != "admin" && c.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
@@ -360,6 +374,7 @@ func (h *Handler) PreviewSend(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 		return
 	}
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
 
 	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
@@ -373,7 +388,7 @@ func (h *Handler) PreviewSend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.UserID != userID {
+	if role != "admin" && c.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}

@@ -76,8 +76,15 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
 
-	stats, err := h.service.GetDashboardStats(userID)
+	var stats *DashboardStats
+	var err error
+	if role == "admin" {
+		stats, err = h.service.GetDashboardStatsAll()
+	} else {
+		stats, err = h.service.GetDashboardStats(userID)
+	}
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to load dashboard stats")
 		return

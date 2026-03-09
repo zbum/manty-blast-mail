@@ -85,30 +85,39 @@ func (r *Repository) FindLogsByCampaignID(campaignID uint64, page, pageSize int)
 
 // GetDashboardStats returns aggregate statistics for a user's campaigns.
 func (r *Repository) GetDashboardStats(userID uint64) (*DashboardStats, error) {
+	return r.getDashboardStatsWithFilter("user_id = ?", userID)
+}
+
+// GetDashboardStatsAll returns aggregate statistics for all campaigns (admin).
+func (r *Repository) GetDashboardStatsAll() (*DashboardStats, error) {
+	return r.getDashboardStatsWithFilter("1 = 1")
+}
+
+func (r *Repository) getDashboardStatsWithFilter(where string, args ...interface{}) (*DashboardStats, error) {
 	stats := &DashboardStats{}
 
 	// Total campaigns
 	if err := r.db.Table("campaigns").
-		Where("user_id = ?", userID).
+		Where(where, args...).
 		Count(&stats.TotalCampaigns).Error; err != nil {
 		return nil, err
 	}
 
-	// Total sent across all user campaigns
+	// Total sent across all campaigns
 	var sentResult struct{ Total int64 }
 	if err := r.db.Table("campaigns").
 		Select("COALESCE(SUM(sent_count), 0) as total").
-		Where("user_id = ?", userID).
+		Where(where, args...).
 		Scan(&sentResult).Error; err != nil {
 		return nil, err
 	}
 	stats.TotalSent = sentResult.Total
 
-	// Total failed across all user campaigns
+	// Total failed across all campaigns
 	var failedResult struct{ Total int64 }
 	if err := r.db.Table("campaigns").
 		Select("COALESCE(SUM(failed_count), 0) as total").
-		Where("user_id = ?", userID).
+		Where(where, args...).
 		Scan(&failedResult).Error; err != nil {
 		return nil, err
 	}
@@ -118,7 +127,7 @@ func (r *Repository) GetDashboardStats(userID uint64) (*DashboardStats, error) {
 	var recent []RecentCampaign
 	if err := r.db.Table("campaigns").
 		Select("id, name, status, total_count, sent_count, failed_count, created_at").
-		Where("user_id = ?", userID).
+		Where(where, args...).
 		Order("created_at DESC").
 		Limit(10).
 		Scan(&recent).Error; err != nil {

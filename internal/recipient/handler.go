@@ -53,7 +53,8 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"campaign not found"}`, http.StatusNotFound)
 		return
 	}
-	if c.UserID != userID {
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
+	if role != "admin" && c.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
@@ -145,7 +146,8 @@ func (h *Handler) Manual(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"campaign not found"}`, http.StatusNotFound)
 		return
 	}
-	if c.UserID != userID {
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
+	if role != "admin" && c.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
@@ -231,7 +233,8 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"campaign not found"}`, http.StatusNotFound)
 		return
 	}
-	if c.UserID != userID {
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
+	if role != "admin" && c.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
@@ -293,7 +296,8 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"campaign not found"}`, http.StatusNotFound)
 		return
 	}
-	if c.UserID != userID {
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
+	if role != "admin" && c.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
@@ -336,7 +340,8 @@ func (h *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"campaign not found"}`, http.StatusNotFound)
 		return
 	}
-	if c.UserID != userID {
+	role, _ := r.Context().Value(auth.UserRoleKey).(string)
+	if role != "admin" && c.UserID != userID {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}

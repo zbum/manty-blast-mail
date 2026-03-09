@@ -8,6 +8,7 @@ import (
 type ContextKey string
 
 const UserIDKey ContextKey = "user_id"
+const UserRoleKey ContextKey = "user_role"
 
 type Middleware struct {
 	sessionStore *SessionStore
@@ -38,6 +39,9 @@ func (m *Middleware) RequireAuth(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), UserIDKey, uid)
+		if role, ok := session.Values["user_role"].(string); ok {
+			ctx = context.WithValue(ctx, UserRoleKey, role)
+		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -10,6 +10,24 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
+func (r *Repository) FindAll(page, pageSize int) ([]Campaign, int64, error) {
+	var campaigns []Campaign
+	var total int64
+
+	query := r.db.Model(&Campaign{})
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&campaigns).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return campaigns, total, nil
+}
+
 func (r *Repository) FindAllByUserID(userID uint64, page, pageSize int) ([]Campaign, int64, error) {
 	var campaigns []Campaign
 	var total int64

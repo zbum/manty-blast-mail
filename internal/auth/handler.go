@@ -99,6 +99,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["user_id"] = user.ID
+	session.Values["user_role"] = user.Role
 	if err := session.Save(r, w); err != nil {
 		http.Error(w, `{"error":"failed to save session"}`, http.StatusInternalServerError)
 		return
