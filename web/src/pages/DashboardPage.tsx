@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getDashboard } from '../api/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface DashboardData {
@@ -20,6 +21,7 @@ interface DashboardData {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data, isLoading, error } = useQuery<DashboardData>({
     queryKey: ['dashboard'],
     queryFn: async () => {
@@ -31,7 +33,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500">Loading dashboard...</div>
+        <div className="text-slate-500">{t('dashboard.loading')}</div>
       </div>
     );
   }
@@ -39,14 +41,14 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg">
-        Failed to load dashboard data.
+        {t('dashboard.loadError')}
       </div>
     );
   }
 
   const stats = [
     {
-      label: 'Total Campaigns',
+      label: t('dashboard.totalCampaigns'),
       value: data?.total_campaigns ?? 0,
       color: 'bg-indigo-500',
       icon: (
@@ -57,7 +59,7 @@ export default function DashboardPage() {
       ),
     },
     {
-      label: 'Total Sent',
+      label: t('dashboard.totalSent'),
       value: data?.total_sent ?? 0,
       color: 'bg-green-500',
       icon: (
@@ -67,7 +69,7 @@ export default function DashboardPage() {
       ),
     },
     {
-      label: 'Total Failed',
+      label: t('dashboard.totalFailed'),
       value: data?.total_failed ?? 0,
       color: 'bg-red-500',
       icon: (
@@ -110,7 +112,7 @@ export default function DashboardPage() {
       {/* Chart */}
       {chartData.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Recent Campaign Stats</h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('dashboard.recentStats')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -124,8 +126,8 @@ export default function DashboardPage() {
                   fontSize: '13px',
                 }}
               />
-              <Bar dataKey="sent" fill="#6366f1" name="Sent" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="failed" fill="#ef4444" name="Failed" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="sent" fill="#6366f1" name={t('dashboard.sent')} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="failed" fill="#ef4444" name={t('dashboard.failed')} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -134,18 +136,18 @@ export default function DashboardPage() {
       {/* Recent Campaigns */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="px-6 py-4 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-800">Recent Campaigns</h3>
+          <h3 className="text-lg font-semibold text-slate-800">{t('dashboard.recentCampaigns')}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-200">
-                <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Sent</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Failed</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Total</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Created</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('dashboard.name')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('dashboard.status')}</th>
+                <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('dashboard.sent')}</th>
+                <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('dashboard.failed')}</th>
+                <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('dashboard.total')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('dashboard.created')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -170,7 +172,7 @@ export default function DashboardPage() {
               {(data?.recent_campaigns ?? []).length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-sm text-slate-500">
-                    No campaigns yet. Create your first campaign to get started.
+                    {t('dashboard.noCampaigns')}
                   </td>
                 </tr>
               )}
@@ -183,6 +185,7 @@ export default function DashboardPage() {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
     ready: 'bg-indigo-100 text-indigo-700',
@@ -194,7 +197,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] ?? 'bg-slate-100 text-slate-700'}`}>
-      {status}
+      {t('status.' + status)}
     </span>
   );
 }

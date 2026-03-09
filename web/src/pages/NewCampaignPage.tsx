@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { createCampaign } from '../api/client';
 
 export default function NewCampaignPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('');
   const [fromName, setFromName] = useState('');
@@ -24,7 +26,7 @@ export default function NewCampaignPage() {
       });
       navigate(`/campaigns/${res.data.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create campaign.');
+      setError(err.response?.data?.error || t('newCampaign.createFailed'));
     } finally {
       setSaving(false);
     }
@@ -39,10 +41,10 @@ export default function NewCampaignPage() {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Back to Campaigns
+        {t('newCampaign.backToCampaigns')}
       </button>
 
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">Create New Campaign</h2>
+      <h2 className="text-2xl font-bold text-slate-800 mb-6">{t('newCampaign.title')}</h2>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 max-w-2xl">
         {error && (
@@ -53,49 +55,49 @@ export default function NewCampaignPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Campaign Name</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{t('newCampaign.campaignName')}</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              placeholder="My Campaign"
+              placeholder={t('newCampaign.campaignNamePlaceholder')}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{t('newCampaign.subject')}</label>
             <input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               required
-              placeholder="Email subject line"
+              placeholder={t('newCampaign.subjectPlaceholder')}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">From Name</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{t('newCampaign.fromName')}</label>
             <input
               type="text"
               value={fromName}
               onChange={(e) => setFromName(e.target.value)}
               required
-              placeholder="Your Name or Company"
+              placeholder={t('newCampaign.fromNamePlaceholder')}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">From Email</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{t('newCampaign.fromEmail')}</label>
             <input
               type="email"
               value={fromEmail}
               onChange={(e) => setFromEmail(e.target.value)}
               required
-              placeholder="sender@example.com"
+              placeholder={t('newCampaign.fromEmailPlaceholder')}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
@@ -106,14 +108,14 @@ export default function NewCampaignPage() {
               disabled={saving}
               className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
-              {saving ? 'Creating...' : 'Create Campaign'}
+              {saving ? t('newCampaign.creating') : t('newCampaign.createCampaign')}
             </button>
             <button
               type="button"
               onClick={() => navigate('/campaigns')}
               className="border border-slate-300 text-slate-700 hover:bg-slate-50 px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
-              Cancel
+              {t('newCampaign.cancel')}
             </button>
           </div>
         </form>

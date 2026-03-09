@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Editor } from '@tiptap/react';
 
 interface EditorToolbarProps {
@@ -54,6 +55,7 @@ function LinkPopover({
   onClose: () => void;
   anchorRef: React.RefObject<HTMLButtonElement | null>;
 }) {
+  const { t } = useTranslation();
   const [url, setUrl] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -90,7 +92,7 @@ function LinkPopover({
         type="url"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        placeholder="https://example.com"
+        placeholder={t('toolbar.linkPlaceholder')}
         className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 mb-2"
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
@@ -112,7 +114,7 @@ function LinkPopover({
           }}
           className="px-3 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700 cursor-pointer"
         >
-          Apply
+          {t('common.apply')}
         </button>
         <button
           type="button"
@@ -122,7 +124,7 @@ function LinkPopover({
           }}
           className="px-3 py-1 text-slate-600 text-xs rounded hover:bg-slate-100 cursor-pointer"
         >
-          Remove
+          {t('common.remove')}
         </button>
       </div>
     </div>
@@ -130,6 +132,7 @@ function LinkPopover({
 }
 
 export default function EditorToolbar({ editor }: EditorToolbarProps) {
+  const { t } = useTranslation();
   const [linkOpen, setLinkOpen] = useState(false);
   const linkBtnRef = useRef<HTMLButtonElement>(null);
   const colorRef = useRef<HTMLInputElement>(null);
@@ -141,7 +144,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')}
-          title="Bold"
+          title={t('toolbar.bold')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" /><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
@@ -150,7 +153,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
           isActive={editor.isActive('italic')}
-          title="Italic"
+          title={t('toolbar.italic')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="19" y1="4" x2="10" y2="4" /><line x1="14" y1="20" x2="5" y2="20" /><line x1="15" y1="4" x2="9" y2="20" />
@@ -159,7 +162,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           isActive={editor.isActive('underline')}
-          title="Underline"
+          title={t('toolbar.underline')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" /><line x1="4" y1="21" x2="20" y2="21" />
@@ -174,21 +177,21 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           isActive={editor.isActive('heading', { level: 1 })}
-          title="Heading 1"
+          title={t('toolbar.heading1')}
         >
           <span className="font-bold text-xs">H1</span>
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           isActive={editor.isActive('heading', { level: 2 })}
-          title="Heading 2"
+          title={t('toolbar.heading2')}
         >
           <span className="font-bold text-xs">H2</span>
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           isActive={editor.isActive('heading', { level: 3 })}
-          title="Heading 3"
+          title={t('toolbar.heading3')}
         >
           <span className="font-bold text-xs">H3</span>
         </ToolbarButton>
@@ -202,7 +205,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
           <ToolbarButton
             onClick={() => setLinkOpen(!linkOpen)}
             isActive={editor.isActive('link')}
-            title="Link"
+            title={t('toolbar.link')}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -218,15 +221,15 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         </div>
         <ToolbarButton
           onClick={() => {
-            const url = window.prompt('Enter image URL (must be https://):');
+            const url = window.prompt(t('toolbar.imageUrlPrompt'));
             if (!url) return;
             if (url.startsWith('data:') || !url.startsWith('http')) {
-              alert('Only external image URLs (http/https) are allowed. Base64 images are not supported.');
+              alert(t('toolbar.imageUrlError'));
               return;
             }
             (editor.chain().focus() as any).setImage({ src: url }).run();
           }}
-          title="Image"
+          title={t('toolbar.image')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
@@ -241,7 +244,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           isActive={editor.isActive('bulletList')}
-          title="Bullet List"
+          title={t('toolbar.bulletList')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
@@ -251,7 +254,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           isActive={editor.isActive('orderedList')}
-          title="Ordered List"
+          title={t('toolbar.orderedList')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="10" y1="6" x2="21" y2="6" /><line x1="10" y1="12" x2="21" y2="12" /><line x1="10" y1="18" x2="21" y2="18" />
@@ -269,7 +272,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
           isActive={editor.isActive({ textAlign: 'left' })}
-          title="Align Left"
+          title={t('toolbar.alignLeft')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="18" y2="18" />
@@ -278,7 +281,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
           isActive={editor.isActive({ textAlign: 'center' })}
-          title="Align Center"
+          title={t('toolbar.alignCenter')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="6" x2="21" y2="6" /><line x1="6" y1="12" x2="18" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
@@ -287,7 +290,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
           isActive={editor.isActive({ textAlign: 'right' })}
-          title="Align Right"
+          title={t('toolbar.alignRight')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="6" x2="21" y2="6" /><line x1="9" y1="12" x2="21" y2="12" /><line x1="6" y1="18" x2="21" y2="18" />
@@ -301,7 +304,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
       <ToolbarGroup>
         <ToolbarButton
           onClick={() => colorRef.current?.click()}
-          title="Text Color"
+          title={t('toolbar.textColor')}
         >
           <div className="flex flex-col items-center">
             <span className="text-xs font-bold leading-none" style={{ color: editor.getAttributes('textStyle').color || '#000' }}>A</span>
@@ -322,7 +325,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
       <ToolbarGroup>
         <ToolbarButton
           onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-          title="Insert Table"
+          title={t('toolbar.insertTable')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" /><line x1="9" y1="3" x2="9" y2="21" /><line x1="15" y1="3" x2="15" y2="21" />
@@ -336,7 +339,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
       <ToolbarGroup>
         <ToolbarButton
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          title="Horizontal Rule"
+          title={t('toolbar.horizontalRule')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <line x1="3" y1="12" x2="21" y2="12" />
@@ -351,7 +354,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
-          title="Undo"
+          title={t('toolbar.undo')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
@@ -360,7 +363,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         <ToolbarButton
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
-          title="Redo"
+          title={t('toolbar.redo')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10" />

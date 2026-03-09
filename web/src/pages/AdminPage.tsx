@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createUser, getUsers, deleteUser } from '../api/client';
 
 interface UserItem {
@@ -8,6 +9,7 @@ interface UserItem {
 }
 
 export default function AdminPage() {
+  const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -23,7 +25,7 @@ export default function AdminPage() {
       setUsers(res.data);
       setUsersError('');
     } catch {
-      setUsersError('Failed to load users. Admin access required.');
+      setUsersError(t('admin.loadFailed'));
     }
   };
 
@@ -36,19 +38,19 @@ export default function AdminPage() {
     setMessage(null);
 
     if (password !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match.' });
+      setMessage({ type: 'error', text: t('admin.passwordMismatch') });
       return;
     }
 
     if (password.length < 4) {
-      setMessage({ type: 'error', text: 'Password must be at least 4 characters.' });
+      setMessage({ type: 'error', text: t('admin.passwordTooShort') });
       return;
     }
 
     setIsSubmitting(true);
     try {
       const res = await createUser(username, password);
-      setMessage({ type: 'success', text: `User "${res.data.username}" created successfully.` });
+      setMessage({ type: 'success', text: t('admin.userCreated', { username: res.data.username }) });
       setUsername('');
       setPassword('');
       setConfirmPassword('');
@@ -62,38 +64,38 @@ export default function AdminPage() {
   };
 
   const handleDeleteUser = async (userId: number, uname: string) => {
-    if (!confirm(`Are you sure you want to delete user "${uname}"?`)) return;
+    if (!confirm(t('admin.deleteConfirm', { username: uname }))) return;
     try {
       await deleteUser(userId);
       fetchUsers();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to delete user.');
+      alert(err.response?.data?.error || t('admin.deleteFailed'));
     }
   };
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">User Management</h1>
+      <h1 className="text-2xl font-bold text-slate-800 mb-6">{t('admin.title')}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User List */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200">
           <div className="px-6 py-4 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-700">Users</h2>
+            <h2 className="text-lg font-semibold text-slate-700">{t('admin.users')}</h2>
           </div>
           <div className="p-6">
             {usersError ? (
               <p className="text-sm text-red-600">{usersError}</p>
             ) : users.length === 0 ? (
-              <p className="text-sm text-slate-500">No users found.</p>
+              <p className="text-sm text-slate-500">{t('admin.noUsers')}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="text-left py-2 px-2 font-medium text-slate-600">ID</th>
-                    <th className="text-left py-2 px-2 font-medium text-slate-600">Username</th>
-                    <th className="text-left py-2 px-2 font-medium text-slate-600">Role</th>
-                    <th className="text-right py-2 px-2 font-medium text-slate-600">Action</th>
+                    <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.id')}</th>
+                    <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.username')}</th>
+                    <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.role')}</th>
+                    <th className="text-right py-2 px-2 font-medium text-slate-600">{t('admin.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -105,7 +107,7 @@ export default function AdminPage() {
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
                           u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'
                         }`}>
-                          {u.role}
+                          {u.role === 'admin' ? t('admin.roleAdmin') : t('admin.roleUser')}
                         </span>
                       </td>
                       <td className="py-2.5 px-2 text-right">
@@ -114,7 +116,7 @@ export default function AdminPage() {
                             onClick={() => handleDeleteUser(u.id, u.username)}
                             className="text-red-500 hover:text-red-700 text-xs font-medium transition-colors"
                           >
-                            Delete
+                            {t('common.delete')}
                           </button>
                         )}
                       </td>
@@ -129,7 +131,7 @@ export default function AdminPage() {
         {/* Create User */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 h-fit">
           <div className="px-6 py-4 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-700">Create User</h2>
+            <h2 className="text-lg font-semibold text-slate-700">{t('admin.createUser')}</h2>
           </div>
           <form onSubmit={handleCreateUser} className="p-6 space-y-4">
             {message && (
@@ -144,23 +146,23 @@ export default function AdminPage() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.username')}</label>
               <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Enter username" />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder={t('admin.usernamePlaceholder')} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.password')}</label>
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Enter password" />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder={t('admin.passwordPlaceholder')} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.confirmPassword')}</label>
               <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Confirm password" />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder={t('admin.confirmPasswordPlaceholder')} />
             </div>
             <button type="submit" disabled={isSubmitting}
               className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {isSubmitting ? 'Creating...' : 'Create User'}
+              {isSubmitting ? t('admin.creating') : t('admin.createUser')}
             </button>
           </form>
         </div>

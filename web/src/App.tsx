@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect, createContext, useContext, type ReactNode } from 'react';
 import { getMe } from './api/client';
@@ -67,11 +68,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
 function PrivateRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <div className="text-slate-500 text-sm">Loading...</div>
+        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
       </div>
     );
   }

@@ -1,6 +1,7 @@
 import { useState, useRef, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   getCampaign,
   updateCampaign,
@@ -41,6 +42,7 @@ interface Recipient {
 type Tab = 'info' | 'recipients';
 
 export default function CampaignDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const campaignId = Number(id);
   const navigate = useNavigate();
@@ -58,7 +60,7 @@ export default function CampaignDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500">Loading campaign...</div>
+        <div className="text-slate-500">{t('campaignDetail.loading')}</div>
       </div>
     );
   }
@@ -66,14 +68,14 @@ export default function CampaignDetailPage() {
   if (!campaign) {
     return (
       <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg">
-        Campaign not found.
+        {t('campaignDetail.notFound')}
       </div>
     );
   }
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'info', label: 'Campaign Info' },
-    { key: 'recipients', label: 'Recipients' },
+    { key: 'info', label: t('campaignDetail.tabInfo') },
+    { key: 'recipients', label: t('campaignDetail.tabRecipients') },
   ];
 
   return (
@@ -88,7 +90,7 @@ export default function CampaignDetailPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Campaigns
+            {t('campaignDetail.backToCampaigns')}
           </button>
           <h2 className="text-2xl font-bold text-slate-800">{campaign.name}</h2>
           <p className="text-sm text-slate-500 mt-1">
@@ -99,37 +101,37 @@ export default function CampaignDetailPage() {
           {(campaign.status === 'completed' || campaign.status === 'cancelled') && (
             <button
               onClick={async () => {
-                if (!confirm('Reset this campaign to draft? All send logs will be cleared and recipients will be reset to pending.')) return;
+                if (!confirm(t('campaignDetail.resetConfirm'))) return;
                 try {
                   await resetCampaign(campaignId);
                   queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
                   queryClient.invalidateQueries({ queryKey: ['recipients', campaignId] });
                 } catch (err: any) {
-                  alert(err.response?.data?.error || 'Failed to reset campaign.');
+                  alert(err.response?.data?.error || t('campaignDetail.resetFailed'));
                 }
               }}
               className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
-              Reset to Draft
+              {t('campaignDetail.resetToDraft')}
             </button>
           )}
           <button
             onClick={() => navigate(`/campaigns/${campaignId}/compose`)}
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
-            Compose
+            {t('campaignDetail.compose')}
           </button>
           <button
             onClick={() => navigate(`/campaigns/${campaignId}/send`)}
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
-            Send
+            {t('campaignDetail.send')}
           </button>
           <button
             onClick={() => navigate(`/campaigns/${campaignId}/report`)}
             className="bg-slate-500 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
-            Report
+            {t('campaignDetail.report')}
           </button>
         </div>
       </div>
@@ -165,6 +167,7 @@ export default function CampaignDetailPage() {
 }
 
 function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdated: () => void }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [name, setName] = useState(campaign.name);
   const [subject, setSubject] = useState(campaign.subject);
@@ -172,6 +175,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
   const [fromEmail, setFromEmail] = useState(campaign.from_email);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
@@ -184,34 +188,37 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
         from_name: fromName,
         from_email: fromEmail,
       });
-      setMessage('Campaign updated successfully.');
+      setMessageType('success');
+      setMessage(t('campaignDetail.updateSuccess'));
       onUpdated();
     } catch (err: any) {
-      setMessage(err.response?.data?.error || 'Failed to update campaign.');
+      setMessageType('error');
+      setMessage(err.response?.data?.error || t('campaignDetail.updateFailed'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+    if (!confirm(t('campaignDetail.deleteConfirm'))) {
       return;
     }
     try {
       await deleteCampaign(campaign.id);
       navigate('/campaigns');
     } catch (err: any) {
-      setMessage(err.response?.data?.error || 'Failed to delete campaign.');
+      setMessageType('error');
+      setMessage(err.response?.data?.error || t('campaignDetail.updateFailed'));
     }
   };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 max-w-2xl">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4">Edit Campaign Info</h3>
+      <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('campaignDetail.editInfo')}</h3>
 
       {message && (
         <div className={`text-sm px-4 py-3 rounded-lg mb-4 ${
-          message.includes('success') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+          messageType === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
         }`}>
           {message}
         </div>
@@ -219,7 +226,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
 
       <form onSubmit={handleSave} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Campaign Name</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{t('campaignDetail.campaignName')}</label>
           <input
             type="text"
             value={name}
@@ -230,7 +237,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{t('campaignDetail.subject')}</label>
           <input
             type="text"
             value={subject}
@@ -241,7 +248,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">From Name</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{t('campaignDetail.fromName')}</label>
           <input
             type="text"
             value={fromName}
@@ -252,7 +259,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">From Email</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{t('campaignDetail.fromEmail')}</label>
           <input
             type="email"
             value={fromEmail}
@@ -268,14 +275,14 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
             disabled={saving}
             className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('campaignDetail.saving') : t('campaignDetail.saveChanges')}
           </button>
           <button
             type="button"
             onClick={handleDelete}
             className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
-            Delete Campaign
+            {t('campaignDetail.deleteCampaign')}
           </button>
         </div>
       </form>
@@ -284,6 +291,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
 }
 
 function RecipientsTab({ campaignId }: { campaignId: number }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [recipientPage, setRecipientPage] = useState(1);
@@ -291,6 +299,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
   const [manualName, setManualName] = useState('');
   const [manualVars, setManualVars] = useState<{ key: string; value: string }[]>([]);
   const [uploadMessage, setUploadMessage] = useState('');
+  const [uploadMessageType, setUploadMessageType] = useState<'success' | 'error'>('success');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
 
@@ -311,19 +320,22 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
   const uploadMutation = useMutation({
     mutationFn: (file: File) => uploadRecipients(campaignId, file),
     onSuccess: () => {
-      setUploadMessage('File uploaded successfully.');
+      setUploadMessageType('success');
+      setUploadMessage(t('campaignDetail.uploadSuccess'));
       queryClient.invalidateQueries({ queryKey: ['recipients', campaignId] });
       queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
     },
     onError: (err: any) => {
-      setUploadMessage(err.response?.data?.error || 'Upload failed.');
+      setUploadMessageType('error');
+      setUploadMessage(err.response?.data?.error || t('campaignDetail.uploadFailed'));
     },
   });
 
   const addManualMutation = useMutation({
     mutationFn: (recipients: any[]) => addRecipientsManual(campaignId, recipients),
     onSuccess: () => {
-      setUploadMessage('Recipient added successfully.');
+      setUploadMessageType('success');
+      setUploadMessage(t('campaignDetail.recipientAdded'));
       setManualEmail('');
       setManualName('');
       setManualVars([]);
@@ -331,19 +343,22 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
       queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
     },
     onError: (err: any) => {
-      setUploadMessage(err.response?.data?.error || 'Failed to add recipient.');
+      setUploadMessageType('error');
+      setUploadMessage(err.response?.data?.error || t('campaignDetail.recipientAddFailed'));
     },
   });
 
   const clearMutation = useMutation({
     mutationFn: () => deleteRecipients(campaignId),
     onSuccess: () => {
-      setUploadMessage('All recipients cleared.');
+      setUploadMessageType('success');
+      setUploadMessage(t('campaignDetail.recipientsCleared'));
       queryClient.invalidateQueries({ queryKey: ['recipients', campaignId] });
       queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
     },
     onError: (err: any) => {
-      setUploadMessage(err.response?.data?.error || 'Failed to clear recipients.');
+      setUploadMessageType('error');
+      setUploadMessage(err.response?.data?.error || t('campaignDetail.recipientsClearFailed'));
     },
   });
 
@@ -354,7 +369,8 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
       queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
     },
     onError: (err: any) => {
-      setUploadMessage(err.response?.data?.error || 'Failed to delete recipient.');
+      setUploadMessageType('error');
+      setUploadMessage(err.response?.data?.error || t('campaignDetail.recipientDeleteFailed'));
     },
   });
 
@@ -380,12 +396,12 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
   };
 
   const handleClearAll = () => {
-    if (!confirm('Are you sure you want to remove all recipients?')) return;
+    if (!confirm(t('campaignDetail.clearAllConfirm'))) return;
     clearMutation.mutate();
   };
 
   const handleDeleteRecipient = (recipientId: number) => {
-    if (!confirm('Are you sure you want to delete this recipient?')) return;
+    if (!confirm(t('campaignDetail.deleteRecipientConfirm'))) return;
     deleteMutation.mutate(recipientId);
   };
 
@@ -422,7 +438,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
         {/* File Upload */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-800">Upload CSV</h3>
+            <h3 className="text-lg font-semibold text-slate-800">{t('campaignDetail.uploadCsv')}</h3>
             <button
               onClick={handleDownloadTemplate}
               className="text-sm text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer flex items-center gap-1"
@@ -430,11 +446,11 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Download Template
+              {t('campaignDetail.downloadTemplate')}
             </button>
           </div>
           <p className="text-sm text-slate-500 mb-4">
-            Upload a CSV file with columns: email, name (and optional variable columns).
+            {t('campaignDetail.csvHelp')}
           </p>
           <input
             ref={fileInputRef}
@@ -451,56 +467,56 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p className="text-sm text-slate-600 font-medium">Click to upload CSV</p>
-            <p className="text-xs text-slate-400 mt-1">or drag and drop</p>
+            <p className="text-sm text-slate-600 font-medium">{t('campaignDetail.clickToUpload')}</p>
+            <p className="text-xs text-slate-400 mt-1">{t('campaignDetail.orDragDrop')}</p>
           </div>
           {uploadMutation.isPending && (
-            <p className="text-sm text-indigo-600 mt-3">Uploading...</p>
+            <p className="text-sm text-indigo-600 mt-3">{t('campaignDetail.uploading')}</p>
           )}
         </div>
 
         {/* Manual Entry */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Add Manually</h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('campaignDetail.addManually')}</h3>
           <form onSubmit={handleAddManual} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t('campaignDetail.emailLabel')}</label>
               <input
                 type="email"
                 value={manualEmail}
                 onChange={(e) => setManualEmail(e.target.value)}
                 required
-                placeholder="recipient@example.com"
+                placeholder={t('campaignDetail.emailPlaceholder')}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Name (optional)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t('campaignDetail.nameOptional')}</label>
               <input
                 type="text"
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
-                placeholder="John Doe"
+                placeholder={t('campaignDetail.namePlaceholder')}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
             {manualVars.length > 0 && (
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-slate-500">Variables</label>
+                <label className="block text-xs font-medium text-slate-500">{t('campaignDetail.variables')}</label>
                 {manualVars.map((v, i) => (
                   <div key={i} className="flex gap-1">
                     <input
                       type="text"
                       value={v.key}
                       onChange={(e) => setManualVars((prev) => prev.map((item, j) => j === i ? { ...item, key: e.target.value } : item))}
-                      placeholder="Key"
+                      placeholder={t('campaignDetail.key')}
                       className="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
                     <input
                       type="text"
                       value={v.value}
                       onChange={(e) => setManualVars((prev) => prev.map((item, j) => j === i ? { ...item, value: e.target.value } : item))}
-                      placeholder="Value"
+                      placeholder={t('campaignDetail.value')}
                       className="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
                     <button
@@ -521,14 +537,14 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
               onClick={() => setManualVars((prev) => [...prev, { key: '', value: '' }])}
               className="w-full text-xs text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer py-1"
             >
-              + Add Variable
+              {t('campaignDetail.addVariable')}
             </button>
             <button
               type="submit"
               disabled={addManualMutation.isPending}
               className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
             >
-              {addManualMutation.isPending ? 'Adding...' : 'Add Recipient'}
+              {addManualMutation.isPending ? t('campaignDetail.adding') : t('campaignDetail.addRecipient')}
             </button>
           </form>
         </div>
@@ -537,7 +553,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
       {/* Status Message */}
       {uploadMessage && (
         <div className={`text-sm px-4 py-3 rounded-lg ${
-          uploadMessage.includes('success') || uploadMessage.includes('cleared')
+          uploadMessageType === 'success'
             ? 'bg-green-50 text-green-700 border border-green-200'
             : 'bg-red-50 text-red-700 border border-red-200'
         }`}>
@@ -549,7 +565,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-800">
-            Recipients {recipientData ? `(${recipientData.total.toLocaleString()})` : ''}
+            {recipientData ? t('campaignDetail.recipientsCount', { total: recipientData.total.toLocaleString() }) : t('campaignDetail.tabRecipients')}
           </h3>
           <div className="flex items-center gap-4">
             <form onSubmit={handleSearch} className="flex items-center gap-2">
@@ -557,14 +573,14 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search email or name..."
+                placeholder={t('campaignDetail.searchPlaceholder')}
                 className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-56"
               />
               <button
                 type="submit"
                 className="px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
               >
-                Search
+                {t('common.search')}
               </button>
               {search && (
                 <button
@@ -572,7 +588,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                   onClick={() => { setSearch(''); setSearchInput(''); setRecipientPage(1); }}
                   className="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-700 cursor-pointer"
                 >
-                  Clear
+                  {t('common.clear')}
                 </button>
               )}
             </form>
@@ -580,24 +596,24 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
               onClick={handleClearAll}
               className="text-sm text-red-600 hover:text-red-700 font-medium cursor-pointer"
             >
-              Clear All
+              {t('campaignDetail.clearAll')}
             </button>
           </div>
         </div>
 
         {recipientsLoading ? (
-          <div className="p-8 text-center text-sm text-slate-500">Loading recipients...</div>
+          <div className="p-8 text-center text-sm text-slate-500">{t('campaignDetail.loadingRecipients')}</div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Variables</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('common.email')}</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('common.name')}</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignDetail.variables')}</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('common.status')}</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -612,7 +628,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                       </td>
                       <td className="px-6 py-3 text-sm">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${recipientStatusStyles[r.status] ?? 'bg-slate-100 text-slate-700'}`}>
-                          {r.status}
+                          {t('status.' + r.status)}
                         </span>
                       </td>
                       <td className="px-6 py-3 text-sm">
@@ -620,7 +636,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                           onClick={() => handleDeleteRecipient(r.id)}
                           disabled={deleteMutation.isPending}
                           className="text-red-500 hover:text-red-700 transition-colors cursor-pointer disabled:opacity-50"
-                          title="Delete recipient"
+                          title={t('campaignDetail.deleteRecipient')}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -632,7 +648,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                   {(recipientData?.data ?? []).length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-500">
-                        No recipients added yet.
+                        {t('campaignDetail.noRecipients')}
                       </td>
                     </tr>
                   )}
@@ -643,7 +659,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
             {totalPages > 1 && (
               <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                 <p className="text-sm text-slate-500">
-                  Page {recipientData!.page} of {totalPages}
+                  {t('common.page', { page: recipientData!.page, totalPages })}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -651,14 +667,14 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                     disabled={recipientPage <= 1}
                     className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors cursor-pointer"
                   >
-                    Previous
+                    {t('common.previous')}
                   </button>
                   <button
                     onClick={() => setRecipientPage((p) => Math.min(totalPages, p + 1))}
                     disabled={recipientPage >= totalPages}
                     className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors cursor-pointer"
                   >
-                    Next
+                    {t('common.next')}
                   </button>
                 </div>
               </div>
@@ -671,6 +687,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
     ready: 'bg-indigo-100 text-indigo-700',
@@ -682,7 +699,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] ?? 'bg-slate-100 text-slate-700'}`}>
-      {status}
+      {t('status.' + status)}
     </span>
   );
 }
