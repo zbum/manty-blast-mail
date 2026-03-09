@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/mail"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -14,6 +15,11 @@ import (
 	"github.com/zbum/manty-blast-mail/internal/auth"
 	"github.com/zbum/manty-blast-mail/internal/campaign"
 )
+
+func isValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
+}
 
 type Handler struct {
 	repo         *Repository
@@ -160,7 +166,7 @@ func (h *Handler) Manual(w http.ResponseWriter, r *http.Request) {
 
 	recipients := make([]Recipient, 0, len(input))
 	for _, mr := range input {
-		if mr.Email == "" {
+		if mr.Email == "" || !isValidEmail(mr.Email) {
 			continue
 		}
 		recipients = append(recipients, Recipient{

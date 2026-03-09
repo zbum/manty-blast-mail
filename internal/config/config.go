@@ -68,7 +68,7 @@ func Load(path string) (*Config, error) {
 		cfg.SMTP.PoolSize = 10
 	}
 	if cfg.Sender.DefaultRateLimit == 0 {
-		cfg.Sender.DefaultRateLimit = 10
+		cfg.Sender.DefaultRateLimit = 2
 	}
 	if cfg.Sender.MaxRateLimit == 0 {
 		cfg.Sender.MaxRateLimit = 100

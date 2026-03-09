@@ -87,7 +87,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	c.ID = 0 // ensure auto-generation
 
 	if err := h.service.Create(&c); err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -261,25 +261,36 @@ func (h *Handler) ResetToDraft(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Reset campaign counters and status
-	c.Status = "draft"
-	c.SentCount = 0
-	c.FailedCount = 0
-	c.TotalCount = 0
-	if err := h.service.Update(c); err != nil {
+	// Reset campaign in a transaction
+	if err := h.repo.db.Transaction(func(tx *gorm.DB) error {
+		// Reset campaign counters and status
+		c.Status = "draft"
+		c.SentCount = 0
+		c.FailedCount = 0
+		c.TotalCount = 0
+		if err := tx.Save(c).Error; err != nil {
+			return err
+		}
+
+		// Reset all recipients back to pending
+		if err := tx.Table("recipients").
+			Where("campaign_id = ?", id).
+			Update("status", "pending").Error; err != nil {
+			return err
+		}
+
+		// Clear send logs
+		if err := tx.Table("send_logs").
+			Where("campaign_id = ?", id).
+			Delete(nil).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		http.Error(w, `{"error":"failed to reset campaign"}`, http.StatusInternalServerError)
 		return
 	}
-
-	// Reset all recipients back to pending
-	h.repo.db.Table("recipients").
-		Where("campaign_id = ?", id).
-		Update("status", "pending")
-
-	// Clear send logs
-	h.repo.db.Table("send_logs").
-		Where("campaign_id = ?", id).
-		Delete(nil)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(c)
@@ -392,7 +403,7 @@ func (h *Handler) PreviewSend(w http.ResponseWriter, r *http.Request) {
 	} else {
 		htmlBody, textBody, renderErr := mailer.RenderBody(c.BodyHTML, vars)
 		if renderErr != nil {
-			http.Error(w, `{"error":"failed to render template: `+renderErr.Error()+`"}`, http.StatusInternalServerError)
+			writeJSONError(w, http.StatusInternalServerError, "failed to render template: "+renderErr.Error())
 			return
 		}
 
@@ -410,12 +421,12 @@ func (h *Handler) PreviewSend(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		http.Error(w, `{"error":"failed to build message: `+err.Error()+`"}`, http.StatusInternalServerError)
+		writeJSONError(w, http.StatusInternalServerError, "failed to build message: "+err.Error())
 		return
 	}
 
 	if _, err := h.mailer.Send(c.FromEmail, req.Email, msg); err != nil {
-		http.Error(w, `{"error":"failed to send: `+err.Error()+`"}`, http.StatusInternalServerError)
+		writeJSONError(w, http.StatusInternalServerError, "failed to send: "+err.Error())
 		return
 	}
 
@@ -423,4 +434,10 @@ func (h *Handler) PreviewSend(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "test email sent to " + req.Email,
 	})
+}
+
+func writeJSONError(w http.ResponseWriter, status int, msg string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(map[string]string{"error": msg})
 }

@@ -47,12 +47,23 @@ func main() {
 	var count int64
 	db.Model(&auth.User{}).Count(&count)
 	if count == 0 {
-		hashed, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
+		hashed, err := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to hash default admin password")
+		}
 		db.Create(&auth.User{Username: "admin", Password: string(hashed), Role: "admin"})
 		log.Info().Msg("default admin user created (username: admin, password: admin)")
 	} else {
 		// Ensure existing admin user has admin role
 		db.Model(&auth.User{}).Where("username = ? AND (role = '' OR role = 'user')", "admin").Update("role", "admin")
+	}
+
+	// Recover campaigns stuck in "sending" status from previous crash
+	var stuckCount int64
+	db.Model(&campaign.Campaign{}).Where("status = ?", "sending").Count(&stuckCount)
+	if stuckCount > 0 {
+		db.Model(&campaign.Campaign{}).Where("status = ?", "sending").Update("status", "paused")
+		log.Warn().Int64("count", stuckCount).Msg("recovered stuck campaigns from 'sending' to 'paused'")
 	}
 
 	srv := server.New(cfg, db)

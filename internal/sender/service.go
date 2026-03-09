@@ -54,6 +54,13 @@ func NewService(db *gorm.DB, m *mailer.Mailer, hub *ws.Hub, cfg config.SenderCon
 	}
 }
 
+// RecoverStuckCampaigns resets campaigns stuck in "sending" status on startup.
+func (s *Service) RecoverStuckCampaigns() {
+	s.db.Model(&campaign.Campaign{}).
+		Where("status = ?", "sending").
+		Update("status", "paused")
+}
+
 // GetProgress returns the current progress for a campaign, if it is running.
 func (s *Service) GetProgress(campaignID uint64) (*ProgressData, bool) {
 	s.mu.RLock()
@@ -203,6 +210,9 @@ func (s *Service) runCampaign(ctx context.Context, campaignID uint64, runner *Ca
 	// Wait for all workers to finish
 	wg.Wait()
 
+	// Stop the ticker goroutine
+	runner.progress.Stop()
+
 	// Flush remaining results and broadcast
 	remainingResults := runner.progress.FlushResults()
 	if len(remainingResults) > 0 {
@@ -247,13 +257,24 @@ func (s *Service) runCampaign(ctx context.Context, campaignID uint64, runner *Ca
 }
 
 func (s *Service) saveResults(campaignID uint64, runner *CampaignRunner) {
-	repo := recipient.NewRepository(s.db)
 	results := runner.progress.GetAllResults()
 
-	for _, r := range results {
-		if err := repo.UpdateStatus(r.RecipientID, r.Status, r.ErrorMessage); err != nil {
-			log.Error().Err(err).Uint64("recipient_id", r.RecipientID).Msg("failed to update recipient status")
+	const batchSize = 100
+	for i := 0; i < len(results); i += batchSize {
+		end := i + batchSize
+		if end > len(results) {
+			end = len(results)
 		}
+		batch := results[i:end]
+		s.db.Transaction(func(tx *gorm.DB) error {
+			txRepo := recipient.NewRepository(tx)
+			for _, r := range batch {
+				if err := txRepo.UpdateStatus(r.RecipientID, r.Status, r.ErrorMessage); err != nil {
+					log.Error().Err(err).Uint64("recipient_id", r.RecipientID).Msg("failed to update recipient status")
+				}
+			}
+			return nil
+		})
 	}
 
 	log.Info().Uint64("campaign_id", campaignID).Int("count", len(results)).Msg("saved recipient statuses to database")

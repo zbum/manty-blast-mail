@@ -46,15 +46,18 @@ function parseDTValue(icsdt: string): string {
 
 function parseIcsString(ics: string): IcsFields | null {
   if (!ics || !ics.includes('BEGIN:VEVENT')) return null;
+  // Extract only the VEVENT section to avoid matching VTIMEZONE fields
+  const veventMatch = ics.match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/);
+  const vevent = veventMatch ? veventMatch[0] : ics;
   const get = (key: string): string => {
     const re = new RegExp(`^${key}:(.*)$`, 'm');
-    const m = ics.match(re);
+    const m = vevent.match(re);
     return m ? m[1].trim() : '';
   };
   const getDT = (key: string): string => {
     // Match DTSTART:... or DTSTART;TZID=...:...
     const re = new RegExp(`^${key}[;:](.*)$`, 'm');
-    const m = ics.match(re);
+    const m = vevent.match(re);
     if (!m) return '';
     const raw = m[1].trim();
     // Extract datetime value: handle TZID=Asia/Seoul:20260308T100000
@@ -70,7 +73,7 @@ function parseIcsString(ics: string): IcsFields | null {
 
   let organizerName = '';
   let organizerEmail = '';
-  const orgMatch = ics.match(/^ORGANIZER(?:;CN=([^:;]*))?:mailto:(.*)$/m);
+  const orgMatch = vevent.match(/^ORGANIZER(?:;CN=([^:;]*))?:mailto:(.*)$/m);
   if (orgMatch) {
     organizerName = (orgMatch[1] || '').replace(/^"|"$/g, '');
     organizerEmail = orgMatch[2]?.trim() || '';

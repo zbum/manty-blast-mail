@@ -35,6 +35,7 @@ type ProgressCollector struct {
 	allResults []SendResult
 	mu         sync.Mutex
 	broadcast  func(event string, data interface{})
+	done       chan struct{}
 }
 
 func NewProgressCollector(campaignID uint64, total int, rate int, broadcast func(string, interface{})) *ProgressCollector {
@@ -44,9 +45,18 @@ func NewProgressCollector(campaignID uint64, total int, rate int, broadcast func
 		rate:       rate,
 		status:     "sending",
 		broadcast:  broadcast,
+		done:       make(chan struct{}),
 	}
 	go pc.ticker()
 	return pc
+}
+
+func (pc *ProgressCollector) Stop() {
+	select {
+	case <-pc.done:
+	default:
+		close(pc.done)
+	}
 }
 
 func (pc *ProgressCollector) AddResult(result SendResult) {
@@ -135,6 +145,8 @@ func (pc *ProgressCollector) ticker() {
 	defer resultsTicker.Stop()
 	for {
 		select {
+		case <-pc.done:
+			return
 		case <-progressTicker.C:
 			data := pc.GetProgress()
 			if data.Status != "sending" && data.Status != "paused" {

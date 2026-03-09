@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -18,12 +20,19 @@ type User struct {
 }
 
 type Handler struct {
-	db           *gorm.DB
-	sessionStore *SessionStore
+	db            *gorm.DB
+	sessionStore  *SessionStore
+	loginAttempts map[string]*loginAttempt
+	loginMu       sync.Mutex
+}
+
+type loginAttempt struct {
+	count   int
+	lastTry time.Time
 }
 
 func NewHandler(db *gorm.DB, sessionStore *SessionStore) *Handler {
-	return &Handler{db: db, sessionStore: sessionStore}
+	return &Handler{db: db, sessionStore: sessionStore, loginAttempts: make(map[string]*loginAttempt)}
 }
 
 type loginRequest struct {
@@ -49,6 +58,16 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Rate limit login attempts
+	h.loginMu.Lock()
+	attempt, exists := h.loginAttempts[req.Username]
+	if exists && attempt.count >= 5 && time.Since(attempt.lastTry) < 5*time.Minute {
+		h.loginMu.Unlock()
+		http.Error(w, `{"error":"too many login attempts, try again later"}`, http.StatusTooManyRequests)
+		return
+	}
+	h.loginMu.Unlock()
+
 	var user User
 	if err := h.db.Where("username = ?", req.Username).First(&user).Error; err != nil {
 		http.Error(w, `{"error":"invalid credentials"}`, http.StatusUnauthorized)
@@ -56,9 +75,22 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		// Track failed login
+		h.loginMu.Lock()
+		if _, ok := h.loginAttempts[req.Username]; !ok {
+			h.loginAttempts[req.Username] = &loginAttempt{}
+		}
+		h.loginAttempts[req.Username].count++
+		h.loginAttempts[req.Username].lastTry = time.Now()
+		h.loginMu.Unlock()
 		http.Error(w, `{"error":"invalid credentials"}`, http.StatusUnauthorized)
 		return
 	}
+
+	// Clear failed attempts on success
+	h.loginMu.Lock()
+	delete(h.loginAttempts, req.Username)
+	h.loginMu.Unlock()
 
 	session, err := h.sessionStore.Get(r)
 	if err != nil {

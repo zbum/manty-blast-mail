@@ -77,7 +77,7 @@ func (w *Worker) processJob(ctx context.Context, job SendJob) {
 		case <-ctx.Done():
 			return
 		case <-w.pauseCh:
-			// Resumed, continue
+		case <-time.After(500 * time.Millisecond):
 		}
 	}
 
