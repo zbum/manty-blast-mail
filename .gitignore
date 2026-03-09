@@ -3,6 +3,10 @@ bin/
 
 # Config (may contain credentials)
 config.yaml
+config-local.yaml
+
+# SQLite
+*.db
 
 # Frontend
 web/node_modules/
