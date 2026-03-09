@@ -44,7 +44,7 @@ func (s *Service) Create(c *Campaign) error {
 		c.Status = "draft"
 	}
 	if c.RateLimit == 0 {
-		c.RateLimit = 10
+		c.RateLimit = 2
 	}
 	return s.repo.Create(c)
 }
