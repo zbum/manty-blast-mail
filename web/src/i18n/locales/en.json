@@ -277,6 +277,8 @@
     "roleUser": "User",
     "deleteConfirm": "Are you sure you want to delete user \"{{username}}\"?",
     "deleteFailed": "Failed to delete user.",
+    "clickToToggleRole": "Click to toggle role",
+    "roleUpdateFailed": "Failed to update role.",
     "createUser": "Create User",
     "usernamePlaceholder": "Enter username",
     "password": "Password",

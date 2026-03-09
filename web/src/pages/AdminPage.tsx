@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createUser, getUsers, deleteUser } from '../api/client';
+import { createUser, getUsers, deleteUser, updateUserRole } from '../api/client';
 
 interface UserItem {
   id: number;
@@ -63,6 +63,16 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleRole = async (userId: number, currentRole: string) => {
+    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    try {
+      await updateUserRole(userId, newRole);
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.response?.data?.error || t('admin.roleUpdateFailed'));
+    }
+  };
+
   const handleDeleteUser = async (userId: number, uname: string) => {
     if (!confirm(t('admin.deleteConfirm', { username: uname }))) return;
     try {
@@ -104,21 +114,23 @@ export default function AdminPage() {
                       <td className="py-2.5 px-2 text-slate-500">{u.id}</td>
                       <td className="py-2.5 px-2 text-slate-800 font-medium">{u.username}</td>
                       <td className="py-2.5 px-2">
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'
-                        }`}>
+                        <button
+                          onClick={() => handleToggleRole(u.id, u.role)}
+                          className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${
+                            u.role === 'admin' ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                          title={t('admin.clickToToggleRole')}
+                        >
                           {u.role === 'admin' ? t('admin.roleAdmin') : t('admin.roleUser')}
-                        </span>
+                        </button>
                       </td>
                       <td className="py-2.5 px-2 text-right">
-                        {u.role !== 'admin' && (
-                          <button
-                            onClick={() => handleDeleteUser(u.id, u.username)}
-                            className="text-red-500 hover:text-red-700 text-xs font-medium transition-colors"
-                          >
-                            {t('common.delete')}
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleDeleteUser(u.id, u.username)}
+                          className="text-red-500 hover:text-red-700 text-xs font-medium transition-colors"
+                        >
+                          {t('common.delete')}
+                        </button>
                       </td>
                     </tr>
                   ))}

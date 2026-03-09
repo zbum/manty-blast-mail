@@ -18,6 +18,8 @@ export const changePassword = (currentPassword: string, newPassword: string) =>
   api.put('/auth/password', { current_password: currentPassword, new_password: newPassword });
 export const getUsers = () => api.get('/auth/users');
 export const deleteUser = (userId: number) => api.delete(`/auth/users/${userId}`);
+export const updateUserRole = (userId: number, role: string) =>
+  api.put(`/auth/users/${userId}/role`, { role });
 
 // Campaigns
 export const getCampaigns = (page = 1) => api.get(`/campaigns?page=${page}`);
