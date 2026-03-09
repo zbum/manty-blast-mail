@@ -25,11 +25,11 @@ func NewHandler(db *gorm.DB, ml *mailer.Mailer) *Handler {
 }
 
 type listResponse struct {
-	Data       []Campaign `json:"data"`
-	Total      int64      `json:"total"`
-	Page       int        `json:"page"`
-	PageSize   int        `json:"page_size"`
-	TotalPages int        `json:"total_pages"`
+	Data       []CampaignListItem `json:"data"`
+	Total      int64              `json:"total"`
+	Page       int                `json:"page"`
+	PageSize   int                `json:"page_size"`
+	TotalPages int                `json:"total_pages"`
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +44,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("pageSize"))
 
-	var campaigns []Campaign
+	var campaigns []CampaignListItem
 	var total int64
 	var err error
 	if role == "admin" {

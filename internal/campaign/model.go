@@ -5,7 +5,6 @@ import "time"
 type Campaign struct {
 	ID          uint64    `json:"id" gorm:"primaryKey"`
 	UserID      uint64    `json:"user_id"`
-	Username    string    `json:"username" gorm:"-"`
 	Name        string    `json:"name"`
 	Subject     string    `json:"subject"`
 	BodyType    string    `json:"body_type" gorm:"type:varchar(20);default:'html'"`
@@ -22,4 +21,18 @@ type Campaign struct {
 	RateLimit   int       `json:"rate_limit" gorm:"default:2"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// CampaignListItem is used for list queries with JOIN to include username.
+type CampaignListItem struct {
+	ID          uint64    `json:"id"`
+	UserID      uint64    `json:"user_id"`
+	Username    string    `json:"username"`
+	Name        string    `json:"name"`
+	Subject     string    `json:"subject"`
+	Status      string    `json:"status"`
+	TotalCount  int       `json:"total_count"`
+	SentCount   int       `json:"sent_count"`
+	FailedCount int       `json:"failed_count"`
+	CreatedAt   time.Time `json:"created_at"`
 }

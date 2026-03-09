@@ -10,8 +10,8 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) FindAll(page, pageSize int) ([]Campaign, int64, error) {
-	var campaigns []Campaign
+func (r *Repository) FindAll(page, pageSize int) ([]CampaignListItem, int64, error) {
+	var campaigns []CampaignListItem
 	var total int64
 
 	if err := r.db.Model(&Campaign{}).Count(&total).Error; err != nil {
@@ -20,7 +20,7 @@ func (r *Repository) FindAll(page, pageSize int) ([]Campaign, int64, error) {
 
 	offset := (page - 1) * pageSize
 	if err := r.db.Table("campaigns").
-		Select("campaigns.*, users.username").
+		Select("campaigns.id, campaigns.user_id, users.username, campaigns.name, campaigns.subject, campaigns.status, campaigns.total_count, campaigns.sent_count, campaigns.failed_count, campaigns.created_at").
 		Joins("LEFT JOIN users ON users.id = campaigns.user_id").
 		Order("campaigns.created_at DESC").Offset(offset).Limit(pageSize).
 		Scan(&campaigns).Error; err != nil {
@@ -30,8 +30,8 @@ func (r *Repository) FindAll(page, pageSize int) ([]Campaign, int64, error) {
 	return campaigns, total, nil
 }
 
-func (r *Repository) FindAllByUserID(userID uint64, page, pageSize int) ([]Campaign, int64, error) {
-	var campaigns []Campaign
+func (r *Repository) FindAllByUserID(userID uint64, page, pageSize int) ([]CampaignListItem, int64, error) {
+	var campaigns []CampaignListItem
 	var total int64
 
 	if err := r.db.Model(&Campaign{}).Where("user_id = ?", userID).Count(&total).Error; err != nil {
@@ -40,7 +40,7 @@ func (r *Repository) FindAllByUserID(userID uint64, page, pageSize int) ([]Campa
 
 	offset := (page - 1) * pageSize
 	if err := r.db.Table("campaigns").
-		Select("campaigns.*, users.username").
+		Select("campaigns.id, campaigns.user_id, users.username, campaigns.name, campaigns.subject, campaigns.status, campaigns.total_count, campaigns.sent_count, campaigns.failed_count, campaigns.created_at").
 		Joins("LEFT JOIN users ON users.id = campaigns.user_id").
 		Where("campaigns.user_id = ?", userID).
 		Order("campaigns.created_at DESC").Offset(offset).Limit(pageSize).
