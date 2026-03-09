@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getCampaigns } from '../api/client';
 
 interface Campaign {
@@ -24,6 +25,7 @@ interface CampaignListResponse {
 
 export default function CampaignListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
 
   const { data, isLoading, error } = useQuery<CampaignListResponse>({
@@ -39,24 +41,24 @@ export default function CampaignListPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-800">Campaigns</h2>
+        <h2 className="text-2xl font-bold text-slate-800">{t('campaignList.title')}</h2>
         <button
           onClick={() => navigate('/campaigns/new')}
           className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
         >
-          + New Campaign
+          {t('campaignList.newCampaign')}
         </button>
       </div>
 
       {isLoading && (
         <div className="flex items-center justify-center h-64">
-          <div className="text-slate-500">Loading campaigns...</div>
+          <div className="text-slate-500">{t('campaignList.loading')}</div>
         </div>
       )}
 
       {error && (
         <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg">
-          Failed to load campaigns.
+          {t('campaignList.loadError')}
         </div>
       )}
 
@@ -66,14 +68,14 @@ export default function CampaignListPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">ID</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Subject</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Sent</th>
-                  <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Failed</th>
-                  <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Recipients</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Created</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.id')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.name')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.subject')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.status')}</th>
+                  <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.sent')}</th>
+                  <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.failed')}</th>
+                  <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.recipients')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.created')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -100,7 +102,7 @@ export default function CampaignListPage() {
                 {data.data.length === 0 && (
                   <tr>
                     <td colSpan={8} className="px-6 py-8 text-center text-sm text-slate-500">
-                      No campaigns found. Create your first campaign to get started.
+                      {t('campaignList.noCampaigns')}
                     </td>
                   </tr>
                 )}
@@ -112,7 +114,7 @@ export default function CampaignListPage() {
           {totalPages > 1 && (
             <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
               <p className="text-sm text-slate-500">
-                Page {data.page} of {totalPages} ({data.total} total)
+                {t('common.pageWithTotal', { page: data.page, totalPages, total: data.total })}
               </p>
               <div className="flex gap-2">
                 <button
@@ -120,14 +122,14 @@ export default function CampaignListPage() {
                   disabled={page <= 1}
                   className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors cursor-pointer"
                 >
-                  Previous
+                  {t('common.previous')}
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                   className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors cursor-pointer"
                 >
-                  Next
+                  {t('common.next')}
                 </button>
               </div>
             </div>
@@ -139,6 +141,7 @@ export default function CampaignListPage() {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
     ready: 'bg-indigo-100 text-indigo-700',
@@ -150,7 +153,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] ?? 'bg-slate-100 text-slate-700'}`}>
-      {status}
+      {t('status.' + status)}
     </span>
   );
 }

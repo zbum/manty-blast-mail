@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getCampaign, updateCampaign, previewCampaign, previewSend } from '../api/client';
 import EmailEditor from '../components/EmailEditor';
 
@@ -135,6 +136,7 @@ export default function ComposePage() {
   const campaignId = Number(id);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const [mode, setMode] = useState<Mode>('html');
   const [htmlContent, setHtmlContent] = useState('');
@@ -156,6 +158,7 @@ export default function ComposePage() {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(true);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [previewHtml, setPreviewHtml] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [testEmail, setTestEmail] = useState('');
@@ -232,9 +235,11 @@ export default function ComposePage() {
       await updateCampaign(campaignId, buildPayload());
       queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
       setDirty(false);
-      setMessage('Content saved successfully.');
+      setMessageType('success');
+      setMessage(t('compose.saveSuccess'));
     } catch (err: any) {
-      setMessage(err.response?.data?.error || 'Failed to save content.');
+      setMessageType('error');
+      setMessage(err.response?.data?.error || t('compose.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -251,7 +256,8 @@ export default function ComposePage() {
       setPreviewHtml(res.data.body_html || '');
       setShowPreview(true);
     } catch (err: any) {
-      setMessage(err.response?.data?.error || 'Preview failed.');
+      setMessageType('error');
+      setMessage(err.response?.data?.error || t('compose.previewFailed'));
     }
   };
 
@@ -265,9 +271,11 @@ export default function ComposePage() {
         if (v.key.trim()) variables[v.key.trim()] = v.value;
       }
       await previewSend(campaignId, testEmail.trim(), testName.trim() || undefined, Object.keys(variables).length > 0 ? variables : undefined);
-      setMessage(`Test email sent to ${testEmail}.`);
+      setMessageType('success');
+      setMessage(t('compose.testSent', { email: testEmail }));
     } catch (err: any) {
-      setMessage(err.response?.data?.error || 'Failed to send test email.');
+      setMessageType('error');
+      setMessage(err.response?.data?.error || t('compose.testFailed'));
     } finally {
       setTestSending(false);
     }
@@ -281,14 +289,14 @@ export default function ComposePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500">Loading...</div>
+        <div className="text-slate-500">{t('common.loading')}</div>
       </div>
     );
   }
 
   if (!campaign) {
     return (
-      <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg">Campaign not found.</div>
+      <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg">{t('compose.notFound')}</div>
     );
   }
 
@@ -302,15 +310,15 @@ export default function ComposePage() {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Back to Campaign
+        {t('compose.backToCampaign')}
       </button>
       <h2 className="text-2xl font-bold text-slate-800 mb-6">
-        Compose: {campaign.name}
+        {t('compose.title', { name: campaign.name })}
       </h2>
 
       {message && (
         <div className={`text-sm px-4 py-3 rounded-lg mb-4 ${
-          message.includes('success') || message.includes('sent to')
+          messageType === 'success'
             ? 'bg-green-50 text-green-700 border border-green-200'
             : 'bg-red-50 text-red-700 border border-red-200'
         }`}>
@@ -324,7 +332,7 @@ export default function ComposePage() {
           {/* Mode Toggle */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
             <div className="flex items-center gap-4 mb-4">
-              <label className="text-sm font-medium text-slate-700">Mode:</label>
+              <label className="text-sm font-medium text-slate-700">{t('compose.mode')}</label>
               <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
                 <button
                   onClick={() => { setMode('html'); setDirty(true); }}
@@ -334,7 +342,7 @@ export default function ComposePage() {
                       : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  HTML
+                  {t('compose.html')}
                 </button>
                 <button
                   onClick={() => { setMode('mime'); setDirty(true); }}
@@ -344,14 +352,14 @@ export default function ComposePage() {
                       : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  Raw MIME
+                  {t('compose.rawMime')}
                 </button>
               </div>
             </div>
 
             <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-4">
               <p className="text-xs text-slate-500">
-                <span className="font-semibold text-slate-600">Template Variables</span> (case-sensitive):
+                <span className="font-semibold text-slate-600">{t('compose.templateVariables')}</span> (case-sensitive):
                 <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600 mx-1">{'{{.Name}}'}</code>
                 <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600 mx-1">{'{{.Email}}'}</code>
                 and custom variables like
@@ -368,7 +376,7 @@ export default function ComposePage() {
               <textarea
                 value={mimeContent}
                 onChange={(e) => { setMimeContent(e.target.value); setDirty(true); }}
-                placeholder="Enter raw MIME content..."
+                placeholder={t('compose.rawMimePlaceholder')}
                 className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
               />
             )}
@@ -386,7 +394,7 @@ export default function ComposePage() {
                 />
                 <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
               </label>
-              <span className="text-sm font-medium text-slate-700">Include iCalendar (.ics) attachment</span>
+              <span className="text-sm font-medium text-slate-700">{t('compose.includeIcs')}</span>
             </div>
 
             {icalEnabled && (
@@ -401,7 +409,7 @@ export default function ComposePage() {
                         : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
-                    Builder
+                    {t('compose.icsBuilder')}
                   </button>
                   <button
                     onClick={() => setIcsMode('raw')}
@@ -411,25 +419,25 @@ export default function ComposePage() {
                         : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
-                    Raw
+                    {t('compose.icsRaw')}
                   </button>
                 </div>
 
                 {icsMode === 'builder' ? (
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">Event Title (SUMMARY)</label>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">{t('compose.eventTitle')}</label>
                       <input
                         type="text"
                         value={icsFields.summary}
                         onChange={(e) => updateIcsField('summary', e.target.value)}
-                        placeholder="e.g. Team Meeting"
+                        placeholder={t('compose.eventTitlePlaceholder')}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Start Date/Time</label>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">{t('compose.startDateTime')}</label>
                         <input
                           type="datetime-local"
                           value={icsFields.dtstart}
@@ -438,7 +446,7 @@ export default function ComposePage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">End Date/Time</label>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">{t('compose.endDateTime')}</label>
                         <input
                           type="datetime-local"
                           value={icsFields.dtend}
@@ -448,51 +456,50 @@ export default function ComposePage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">Location</label>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">{t('compose.location')}</label>
                       <input
                         type="text"
                         value={icsFields.location}
                         onChange={(e) => updateIcsField('location', e.target.value)}
-                        placeholder="e.g. Conference Room A"
+                        placeholder={t('compose.locationPlaceholder')}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">{t('compose.description')}</label>
                       <textarea
                         value={icsFields.description}
                         onChange={(e) => updateIcsField('description', e.target.value)}
-                        placeholder="Event description..."
+                        placeholder={t('compose.descriptionPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Organizer Name</label>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">{t('compose.organizerName')}</label>
                         <input
                           type="text"
                           value={icsFields.organizerName}
                           onChange={(e) => updateIcsField('organizerName', e.target.value)}
-                          placeholder="e.g. John Doe"
+                          placeholder={t('compose.organizerNamePlaceholder')}
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Organizer Email</label>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">{t('compose.organizerEmail')}</label>
                         <input
                           type="email"
                           value={icsFields.organizerEmail}
                           onChange={(e) => updateIcsField('organizerEmail', e.target.value)}
-                          placeholder="e.g. john@example.com"
+                          placeholder={t('compose.organizerEmailPlaceholder')}
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                       </div>
                     </div>
 
                     <p className="text-xs text-slate-400">
-                      Tip: Use <code className="bg-slate-100 px-1 rounded">{'{{.Email}}'}</code> in the attendee field (auto-included).
-                      You can also use <code className="bg-slate-100 px-1 rounded">{'{{.Name}}'}</code> in other fields.
+                      {t('compose.icsTip', { templateEmail: '{{.Email}}', templateName: '{{.Name}}' })}
                     </p>
 
                     {/* Generated ICS Preview */}
@@ -507,7 +514,7 @@ export default function ComposePage() {
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
-                        Generated ICS Preview
+                        {t('compose.generatedIcsPreview')}
                       </button>
                       {icsPreviewOpen && (
                         <pre className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-600 overflow-x-auto max-h-48 overflow-y-auto whitespace-pre-wrap">
@@ -533,28 +540,28 @@ export default function ComposePage() {
         <div className="space-y-4">
           {/* Actions */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-slate-800">Actions</h3>
+            <h3 className="text-sm font-semibold text-slate-800">{t('compose.actions')}</h3>
             <button
               onClick={handleSave}
               disabled={saving}
               className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
-              {saving ? 'Saving...' : 'Save Content'}
+              {saving ? t('compose.saving') : t('compose.saveContent')}
             </button>
             <button
               onClick={handlePreview}
               className="w-full border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
-              Preview
+              {t('compose.preview')}
             </button>
           </div>
 
           {/* Test Send */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-            <h3 className="text-sm font-semibold text-slate-800 mb-3">Test Send</h3>
+            <h3 className="text-sm font-semibold text-slate-800 mb-3">{t('compose.testSend')}</h3>
             {dirty ? (
               <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                Please save content first before sending a test email.
+                {t('compose.saveFirst')}
               </p>
             ) : (
               <form onSubmit={handleTestSend} className="space-y-3">
@@ -562,7 +569,7 @@ export default function ComposePage() {
                   type="email"
                   value={testEmail}
                   onChange={(e) => setTestEmail(e.target.value)}
-                  placeholder="test@example.com"
+                  placeholder={t('compose.testEmailPlaceholder')}
                   required
                   className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
@@ -570,26 +577,26 @@ export default function ComposePage() {
                   type="text"
                   value={testName}
                   onChange={(e) => setTestName(e.target.value)}
-                  placeholder="Name (optional)"
+                  placeholder={t('compose.testNamePlaceholder')}
                   className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
                 {testVars.length > 0 && (
                   <div className="space-y-2">
-                    <label className="block text-xs font-medium text-slate-500">Variables</label>
+                    <label className="block text-xs font-medium text-slate-500">{t('compose.variables')}</label>
                     {testVars.map((v, i) => (
                       <div key={i} className="flex gap-1">
                         <input
                           type="text"
                           value={v.key}
                           onChange={(e) => setTestVars((prev) => prev.map((item, j) => j === i ? { ...item, key: e.target.value } : item))}
-                          placeholder="Key"
+                          placeholder={t('compose.key')}
                           className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                         <input
                           type="text"
                           value={v.value}
                           onChange={(e) => setTestVars((prev) => prev.map((item, j) => j === i ? { ...item, value: e.target.value } : item))}
-                          placeholder="Value"
+                          placeholder={t('compose.value')}
                           className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                         <button
@@ -610,14 +617,14 @@ export default function ComposePage() {
                   onClick={() => setTestVars((prev) => [...prev, { key: '', value: '' }])}
                   className="w-full text-xs text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer py-1"
                 >
-                  + Add Variable
+                  {t('compose.addVariable')}
                 </button>
                 <button
                   type="submit"
                   disabled={testSending}
                   className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
                 >
-                  {testSending ? 'Sending...' : 'Send Test Email'}
+                  {testSending ? t('compose.sending') : t('compose.sendTestEmail')}
                 </button>
               </form>
             )}
@@ -625,18 +632,18 @@ export default function ComposePage() {
 
           {/* Campaign Info */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-            <h3 className="text-sm font-semibold text-slate-800 mb-3">Campaign Info</h3>
+            <h3 className="text-sm font-semibold text-slate-800 mb-3">{t('compose.campaignInfo')}</h3>
             <dl className="space-y-2 text-sm">
               <div>
-                <dt className="text-slate-500">Subject</dt>
+                <dt className="text-slate-500">{t('compose.subjectLabel')}</dt>
                 <dd className="text-slate-800 font-medium">{campaign.subject}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">From</dt>
+                <dt className="text-slate-500">{t('compose.fromLabel')}</dt>
                 <dd className="text-slate-800">{campaign.from_name} &lt;{campaign.from_email}&gt;</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Status</dt>
+                <dt className="text-slate-500">{t('compose.statusLabel')}</dt>
                 <dd><StatusBadge status={campaign.status} /></dd>
               </div>
             </dl>
@@ -649,7 +656,7 @@ export default function ComposePage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-800">Email Preview</h3>
+              <h3 className="text-lg font-semibold text-slate-800">{t('compose.emailPreview')}</h3>
               <button
                 onClick={() => setShowPreview(false)}
                 className="text-slate-400 hover:text-slate-600 cursor-pointer"
@@ -662,7 +669,7 @@ export default function ComposePage() {
             <div className="flex-1 overflow-auto p-1">
               <iframe
                 srcDoc={previewHtml}
-                title="Email Preview"
+                title={t('compose.emailPreview')}
                 className="w-full h-full min-h-[500px] border-0"
                 sandbox=""
               />
@@ -675,6 +682,7 @@ export default function ComposePage() {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
     ready: 'bg-indigo-100 text-indigo-700',
@@ -686,7 +694,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] ?? 'bg-slate-100 text-slate-700'}`}>
-      {status}
+      {t('status.' + status)}
     </span>
   );
 }

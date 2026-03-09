@@ -1,9 +1,11 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { logout, getMe } from '../api/client';
+import { useTranslation } from 'react-i18next';
 
 export default function Layout() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [role, setRole] = useState('');
 
   useEffect(() => {
@@ -31,8 +33,8 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0">
         <div className="px-6 py-5 border-b border-slate-700">
-          <h1 className="text-xl font-bold tracking-tight">Manty Blast Mail</h1>
-          <p className="text-xs text-slate-400 mt-1">Bulk Email Platform</p>
+          <h1 className="text-xl font-bold tracking-tight">{t('app.title')}</h1>
+          <p className="text-xs text-slate-400 mt-1">{t('app.subtitle')}</p>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -41,14 +43,14 @@ export default function Layout() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" />
             </svg>
-            Dashboard
+            {t('nav.dashboard')}
           </NavLink>
           <NavLink to="/campaigns" className={linkClass}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            Campaigns
+            {t('nav.campaigns')}
           </NavLink>
           {role === 'admin' && (
             <NavLink to="/admin" className={linkClass}>
@@ -56,7 +58,7 @@ export default function Layout() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              User Management
+              {t('nav.userManagement')}
             </NavLink>
           )}
         </nav>
@@ -67,8 +69,18 @@ export default function Layout() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            Profile
+            {t('nav.profile')}
           </NavLink>
+          <div className="px-4 py-2">
+            <select
+              value={i18n.language.startsWith('ko') ? 'ko' : 'en'}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              className="w-full bg-slate-800 text-slate-300 text-xs rounded-lg border border-slate-600 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="en">English</option>
+              <option value="ko">한국어</option>
+            </select>
+          </div>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition-colors w-full"
@@ -77,7 +89,7 @@ export default function Layout() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            Logout
+            {t('nav.logout')}
           </button>
         </div>
       </aside>

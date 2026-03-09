@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -19,6 +20,7 @@ interface EmailEditorProps {
 }
 
 export default function EmailEditor({ content, onContentChange }: EmailEditorProps) {
+  const { t } = useTranslation();
   const [sourceView, setSourceView] = useState(false);
   const [rawHtml, setRawHtml] = useState('');
   const isInternalUpdate = useRef(false);
@@ -68,7 +70,7 @@ export default function EmailEditor({ content, onContentChange }: EmailEditorPro
           for (let i = 0; i < files.length; i++) {
             if (files[i].type.startsWith('image/')) {
               event.preventDefault();
-              alert('Image file drops are not supported. Please use an image URL instead.');
+              alert(t('editor.imageDropNotSupported'));
               return true;
             }
           }
@@ -82,7 +84,7 @@ export default function EmailEditor({ content, onContentChange }: EmailEditorPro
           for (let i = 0; i < files.length; i++) {
             if (files[i].type.startsWith('image/')) {
               event.preventDefault();
-              alert('Image paste is not supported. Please use an image URL instead.');
+              alert(t('editor.imagePasteNotSupported'));
               return true;
             }
           }
@@ -134,7 +136,7 @@ export default function EmailEditor({ content, onContentChange }: EmailEditorPro
               : 'text-slate-500 hover:text-slate-700'
           }`}
         >
-          Visual
+          {t('editor.visual')}
         </button>
         <button
           type="button"
@@ -145,7 +147,7 @@ export default function EmailEditor({ content, onContentChange }: EmailEditorPro
               : 'text-slate-500 hover:text-slate-700'
           }`}
         >
-          Source
+          {t('editor.source')}
         </button>
       </div>
 
@@ -153,7 +155,7 @@ export default function EmailEditor({ content, onContentChange }: EmailEditorPro
         <textarea
           value={rawHtml}
           onChange={(e) => handleRawHtmlChange(e.target.value)}
-          placeholder="Enter your HTML email content..."
+          placeholder={t('editor.htmlPlaceholder')}
           className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
         />
       ) : (

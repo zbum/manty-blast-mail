@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getCampaign, startSend, pauseSend, resumeSend, cancelSend, setRate } from '../api/client';
 import { useWebSocket } from '../hooks/useWebSocket';
 
@@ -22,6 +23,7 @@ interface SendResult {
 }
 
 export default function SendingPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const campaignId = Number(id);
   const navigate = useNavigate();
@@ -138,14 +140,14 @@ export default function SendingPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500">Loading...</div>
+        <div className="text-slate-500">{t('common.loading')}</div>
       </div>
     );
   }
 
   if (!campaign) {
     return (
-      <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg">Campaign not found.</div>
+      <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg">{t('compose.notFound')}</div>
     );
   }
 
@@ -165,22 +167,22 @@ export default function SendingPage() {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Back to Campaign
+        {t('sending.backToCampaign')}
       </button>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Send: {campaign.name}</h2>
+          <h2 className="text-2xl font-bold text-slate-800">{t('sending.title', { name: campaign.name })}</h2>
           <div className="flex items-center gap-3 mt-1">
             <StatusIndicator status={status} />
             {isConnected ? (
               <span className="text-xs text-green-600 flex items-center gap-1">
                 <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
-                Live
+                {t('sending.live')}
               </span>
             ) : (
               <span className="text-xs text-slate-400 flex items-center gap-1">
                 <span className="w-2 h-2 bg-slate-300 rounded-full inline-block"></span>
-                Offline
+                {t('sending.offline')}
               </span>
             )}
           </div>
@@ -196,7 +198,7 @@ export default function SendingPage() {
       {/* Progress Section */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-slate-700">Progress</span>
+          <span className="text-sm font-medium text-slate-700">{t('sending.progress')}</span>
           <span className="text-sm text-slate-500">
             {(sentCount + failCount).toLocaleString()} / {totalRecipients.toLocaleString()}
           </span>
@@ -212,17 +214,17 @@ export default function SendingPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Sent" value={sentCount} color="text-green-600" bgColor="bg-green-50" />
-        <StatCard label="Failed" value={failCount} color="text-red-600" bgColor="bg-red-50" />
-        <StatCard label="Remaining" value={remaining} color="text-indigo-600" bgColor="bg-indigo-50" />
-        <StatCard label="Rate" value={`${currentRate}/sec`} color="text-amber-600" bgColor="bg-amber-50" />
+        <StatCard label={t('sending.sent')} value={sentCount} color="text-green-600" bgColor="bg-green-50" />
+        <StatCard label={t('sending.failed')} value={failCount} color="text-red-600" bgColor="bg-red-50" />
+        <StatCard label={t('sending.remaining')} value={remaining} color="text-indigo-600" bgColor="bg-indigo-50" />
+        <StatCard label={t('sending.rate')} value={t('sending.ratePerSec', { rate: currentRate })} color="text-amber-600" bgColor="bg-amber-50" />
       </div>
 
       {/* Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Action Buttons */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-sm font-semibold text-slate-800 mb-4">Controls</h3>
+          <h3 className="text-sm font-semibold text-slate-800 mb-4">{t('sending.controls')}</h3>
           <div className="flex flex-wrap gap-3">
             {isDraft && (
               <button
@@ -230,7 +232,7 @@ export default function SendingPage() {
                 disabled={!!actionLoading}
                 className="bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
               >
-                {actionLoading === 'start' ? 'Starting...' : 'Start Sending'}
+                {actionLoading === 'start' ? t('sending.starting') : t('sending.startSending')}
               </button>
             )}
             {isSending && (
@@ -239,7 +241,7 @@ export default function SendingPage() {
                 disabled={!!actionLoading}
                 className="bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
               >
-                {actionLoading === 'pause' ? 'Pausing...' : 'Pause'}
+                {actionLoading === 'pause' ? t('sending.pausing') : t('sending.pause')}
               </button>
             )}
             {isPaused && (
@@ -248,20 +250,20 @@ export default function SendingPage() {
                 disabled={!!actionLoading}
                 className="bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
               >
-                {actionLoading === 'resume' ? 'Resuming...' : 'Resume'}
+                {actionLoading === 'resume' ? t('sending.resuming') : t('sending.resume')}
               </button>
             )}
             {(isSending || isPaused) && (
               <button
                 onClick={() => {
-                  if (confirm('Are you sure you want to cancel sending? This cannot be undone.')) {
+                  if (confirm(t('sending.cancelConfirm'))) {
                     handleAction('cancel', () => cancelSend(campaignId));
                   }
                 }}
                 disabled={!!actionLoading}
                 className="bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
               >
-                {actionLoading === 'cancel' ? 'Cancelling...' : 'Cancel'}
+                {actionLoading === 'cancel' ? t('sending.cancelling') : t('sending.cancelSending')}
               </button>
             )}
             {(isCompleted || isCancelled) && (
@@ -269,7 +271,7 @@ export default function SendingPage() {
                 onClick={() => navigate(`/campaigns/${campaignId}/report`)}
                 className="bg-slate-600 hover:bg-slate-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
               >
-                View Report
+                {t('sending.viewReport')}
               </button>
             )}
           </div>
@@ -277,7 +279,7 @@ export default function SendingPage() {
 
         {/* Rate Control */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-sm font-semibold text-slate-800 mb-4">Send Rate</h3>
+          <h3 className="text-sm font-semibold text-slate-800 mb-4">{t('sending.sendRate')}</h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <input
@@ -289,14 +291,14 @@ export default function SendingPage() {
                 className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
               />
               <span className="text-sm font-mono text-slate-800 w-16 text-right">
-                {rateInput}/sec
+                {t('sending.ratePerSec', { rate: rateInput })}
               </span>
             </div>
             <button
               onClick={handleRateChange}
               className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
             >
-              Apply Rate
+              {t('sending.applyRate')}
             </button>
           </div>
         </div>
@@ -306,17 +308,17 @@ export default function SendingPage() {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="px-6 py-4 border-b border-slate-200">
           <h3 className="text-sm font-semibold text-slate-800">
-            Live Results ({results.length})
+            {t('sending.liveResults', { count: results.length })}
           </h3>
         </div>
         <div className="max-h-80 overflow-y-auto">
           <table className="w-full">
             <thead className="sticky top-0 bg-white">
               <tr className="border-b border-slate-200">
-                <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
-                <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">Error</th>
-                <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">Time</th>
+                <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('sending.email')}</th>
+                <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('sending.status')}</th>
+                <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('sending.error')}</th>
+                <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('sending.time')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -325,9 +327,9 @@ export default function SendingPage() {
                   <td className="px-6 py-2 text-slate-800">{r.email}</td>
                   <td className="px-6 py-2">
                     {r.status === 'sent' ? (
-                      <span className="text-green-600 font-medium">Sent</span>
+                      <span className="text-green-600 font-medium">{t('status.sent')}</span>
                     ) : (
-                      <span className="text-red-600 font-medium">Failed</span>
+                      <span className="text-red-600 font-medium">{t('status.failed')}</span>
                     )}
                   </td>
                   <td className="px-6 py-2 text-slate-500 text-xs max-w-xs truncate">
@@ -341,7 +343,7 @@ export default function SendingPage() {
               {results.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-sm text-slate-500">
-                    No results yet. Start sending to see live results.
+                    {t('sending.noResults')}
                   </td>
                 </tr>
               )}
@@ -366,13 +368,14 @@ function StatCard({ label, value, color, bgColor }: { label: string; value: numb
 }
 
 function StatusIndicator({ status }: { status: string }) {
+  const { t } = useTranslation();
   const config: Record<string, { color: string; label: string; pulse: boolean }> = {
-    draft: { color: 'bg-slate-400', label: 'Draft', pulse: false },
-    ready: { color: 'bg-indigo-400', label: 'Ready', pulse: false },
-    sending: { color: 'bg-green-500', label: 'Sending', pulse: true },
-    paused: { color: 'bg-amber-500', label: 'Paused', pulse: false },
-    completed: { color: 'bg-green-600', label: 'Completed', pulse: false },
-    cancelled: { color: 'bg-red-500', label: 'Cancelled', pulse: false },
+    draft: { color: 'bg-slate-400', label: t('status.draft'), pulse: false },
+    ready: { color: 'bg-indigo-400', label: t('status.ready'), pulse: false },
+    sending: { color: 'bg-green-500', label: t('status.sending'), pulse: true },
+    paused: { color: 'bg-amber-500', label: t('status.paused'), pulse: false },
+    completed: { color: 'bg-green-600', label: t('status.completed'), pulse: false },
+    cancelled: { color: 'bg-red-500', label: t('status.cancelled'), pulse: false },
   };
 
   const c = config[status] ?? config.draft;
