@@ -385,12 +385,8 @@ func (h *Handler) PreviewSend(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build the email using the campaign content
-	name := req.Name
-	if name == "" {
-		name = req.Email
-	}
 	vars := map[string]string{
-		"Name":  name,
+		"Name":  req.Name,
 		"Email": req.Email,
 	}
 	for k, v := range req.Variables {
