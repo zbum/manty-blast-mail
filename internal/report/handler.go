@@ -1,6 +1,7 @@
 package report
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -56,14 +57,16 @@ func (h *Handler) Export(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/csv")
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=campaign_%d_report.csv", campaignID))
-
-	if err := h.service.ExportCSV(campaignID, w); err != nil {
-		// Headers already sent, log the error
+	// Buffer CSV to memory first to avoid sending headers before verifying success
+	var buf bytes.Buffer
+	if err := h.service.ExportCSV(campaignID, &buf); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to export report")
 		return
 	}
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=campaign_%d_report.csv", campaignID))
+	w.Write(buf.Bytes())
 }
 
 // Dashboard handles GET /dashboard - aggregate stats.

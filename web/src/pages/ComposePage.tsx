@@ -34,7 +34,7 @@ interface IcsFields {
 
 function formatDTValue(dtLocal: string): string {
   // datetime-local gives "2026-03-07T14:00" → convert to "20260307T140000"
-  return dtLocal.replace(/[-:]/g, '').replace('T', 'T') + '00';
+  return dtLocal.replace(/[-:]/g, '') + '00';
 }
 
 function parseDTValue(icsdt: string): string {

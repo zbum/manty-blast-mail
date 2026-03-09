@@ -279,7 +279,10 @@ func (h *Handler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.db.Model(&user).Update("role", req.Role)
+	if err := h.db.Model(&user).Update("role", req.Role).Error; err != nil {
+		http.Error(w, `{"error":"failed to update role"}`, http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(meResponse{
@@ -329,7 +332,10 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.db.Model(&user).Update("password", string(hashed))
+	if err := h.db.Model(&user).Update("password", string(hashed)).Error; err != nil {
+		http.Error(w, `{"error":"failed to update password"}`, http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"message":"password changed"}`))
