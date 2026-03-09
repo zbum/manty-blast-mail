@@ -21,6 +21,7 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
+	Driver   string `yaml:"driver"` // "mysql" (default) or "sqlite"
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
 	User     string `yaml:"user"`
@@ -29,6 +30,12 @@ type DatabaseConfig struct {
 }
 
 func (d DatabaseConfig) DSN() string {
+	if d.Driver == "sqlite" {
+		if d.Name == "" {
+			return "blast-mail.db"
+		}
+		return d.Name
+	}
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		d.User, d.Password, d.Host, d.Port, d.Name)
 }
@@ -61,6 +68,9 @@ func Load(path string) (*Config, error) {
 
 	applyEnvOverrides(cfg)
 
+	if cfg.Database.Driver == "" {
+		cfg.Database.Driver = "mysql"
+	}
 	if cfg.Server.Port == 0 {
 		cfg.Server.Port = 8080
 	}
@@ -84,6 +94,9 @@ func Load(path string) (*Config, error) {
 }
 
 func applyEnvOverrides(cfg *Config) {
+	if v := os.Getenv("DB_DRIVER"); v != "" {
+		cfg.Database.Driver = v
+	}
 	if v := os.Getenv("DB_HOST"); v != "" {
 		cfg.Database.Host = v
 	}

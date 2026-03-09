@@ -12,7 +12,7 @@ type Recipient struct {
 	Email        string    `json:"email" gorm:"index:idx_recipients_campaign_email"`
 	Name         string    `json:"name" gorm:"index:idx_recipients_campaign_name"`
 	Variables    JSONMap   `json:"variables" gorm:"type:json"`
-	Status       string    `json:"status" gorm:"type:enum('pending','sent','failed','skipped');default:'pending';index:idx_recipients_campaign_status"`
+	Status       string    `json:"status" gorm:"type:varchar(20);default:'pending';index:idx_recipients_campaign_status"`
 	ErrorMessage string    `json:"error_message,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`

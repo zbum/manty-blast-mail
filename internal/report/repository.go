@@ -11,7 +11,7 @@ type SendLog struct {
 	ID           uint64    `json:"id" gorm:"primaryKey"`
 	CampaignID   uint64    `json:"campaign_id"`
 	RecipientID  uint64    `json:"recipient_id"`
-	Status       string    `json:"status" gorm:"type:enum('sent','failed')"`
+	Status       string    `json:"status" gorm:"type:varchar(20)"`
 	ErrorMessage string    `json:"error_message,omitempty"`
 	SMTPResponse string    `json:"smtp_response"`
 	DurationMs   int       `json:"duration_ms"`

@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	"github.com/zbum/manty-blast-mail/internal/auth"
@@ -29,10 +30,19 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to load config")
 	}
 
-	db, err := gorm.Open(mysql.Open(cfg.Database.DSN()), &gorm.Config{})
+	var dialector gorm.Dialector
+	switch cfg.Database.Driver {
+	case "sqlite":
+		dialector = sqlite.Open(cfg.Database.DSN())
+	default:
+		dialector = mysql.Open(cfg.Database.DSN())
+	}
+
+	db, err := gorm.Open(dialector, &gorm.Config{})
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to connect to database")
 	}
+	log.Info().Str("driver", cfg.Database.Driver).Msg("database connected")
 
 	if err := db.AutoMigrate(
 		&auth.User{},
