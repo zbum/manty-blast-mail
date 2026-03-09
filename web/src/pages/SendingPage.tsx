@@ -34,8 +34,8 @@ export default function SendingPage() {
   const [sentCount, setSentCount] = useState(0);
   const [failCount, setFailCount] = useState(0);
   const [totalRecipients, setTotalRecipients] = useState(0);
-  const [currentRate, setCurrentRate] = useState(10);
-  const [rateInput, setRateInput] = useState(10);
+  const [currentRate, setCurrentRate] = useState(2);
+  const [rateInput, setRateInput] = useState(2);
   const [results, setResults] = useState<SendResult[]>([]);
   const [actionLoading, setActionLoading] = useState('');
   const [error, setError] = useState('');
@@ -56,8 +56,8 @@ export default function SendingPage() {
       setSentCount(campaign.sent_count ?? 0);
       setFailCount(campaign.failed_count ?? 0);
       setTotalRecipients(campaign.total_count ?? 0);
-      setCurrentRate(campaign.rate_limit || 10);
-      setRateInput(campaign.rate_limit || 10);
+      setCurrentRate(campaign.rate_limit || 2);
+      setRateInput(campaign.rate_limit || 2);
     }
   }, [campaign]);
 
