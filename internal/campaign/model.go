@@ -18,7 +18,7 @@ type Campaign struct {
 	TotalCount  int       `json:"total_count" gorm:"default:0"`
 	SentCount   int       `json:"sent_count" gorm:"default:0"`
 	FailedCount int       `json:"failed_count" gorm:"default:0"`
-	RateLimit   int       `json:"rate_limit" gorm:"default:10"`
+	RateLimit   int       `json:"rate_limit" gorm:"default:2"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
