@@ -71,7 +71,7 @@ function parseIcsString(ics: string): IcsFields | null {
   let organizerEmail = '';
   const orgMatch = ics.match(/^ORGANIZER(?:;CN=([^:;]*))?:mailto:(.*)$/m);
   if (orgMatch) {
-    organizerName = orgMatch[1] || '';
+    organizerName = (orgMatch[1] || '').replace(/^"|"$/g, '');
     organizerEmail = orgMatch[2]?.trim() || '';
   }
 
