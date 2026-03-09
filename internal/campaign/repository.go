@@ -23,7 +23,7 @@ func (r *Repository) FindAll(page, pageSize int) ([]Campaign, int64, error) {
 		Select("campaigns.*, users.username").
 		Joins("LEFT JOIN users ON users.id = campaigns.user_id").
 		Order("campaigns.created_at DESC").Offset(offset).Limit(pageSize).
-		Find(&campaigns).Error; err != nil {
+		Scan(&campaigns).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -44,7 +44,7 @@ func (r *Repository) FindAllByUserID(userID uint64, page, pageSize int) ([]Campa
 		Joins("LEFT JOIN users ON users.id = campaigns.user_id").
 		Where("campaigns.user_id = ?", userID).
 		Order("campaigns.created_at DESC").Offset(offset).Limit(pageSize).
-		Find(&campaigns).Error; err != nil {
+		Scan(&campaigns).Error; err != nil {
 		return nil, 0, err
 	}
 
