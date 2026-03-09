@@ -77,7 +77,7 @@
     "loading": "Loading campaigns...",
     "loadError": "Failed to load campaigns.",
     "id": "ID",
-    "creatorId": "Creator ID",
+    "creator": "Creator",
     "name": "Name",
     "subject": "Subject",
     "status": "Status",

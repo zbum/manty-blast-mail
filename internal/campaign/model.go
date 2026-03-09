@@ -5,6 +5,7 @@ import "time"
 type Campaign struct {
 	ID          uint64    `json:"id" gorm:"primaryKey"`
 	UserID      uint64    `json:"user_id"`
+	Username    string    `json:"username" gorm:"-"`
 	Name        string    `json:"name"`
 	Subject     string    `json:"subject"`
 	BodyType    string    `json:"body_type" gorm:"type:varchar(20);default:'html'"`

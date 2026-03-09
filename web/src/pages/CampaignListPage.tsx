@@ -6,7 +6,7 @@ import { getCampaigns } from '../api/client';
 
 interface Campaign {
   id: number;
-  user_id: number;
+  username: string;
   name: string;
   subject: string;
   status: string;
@@ -70,7 +70,7 @@ export default function CampaignListPage() {
               <thead>
                 <tr className="border-b border-slate-100">
                   <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.id')}</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.creatorId')}</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.creator')}</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.name')}</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.subject')}</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignList.status')}</th>
@@ -88,7 +88,7 @@ export default function CampaignListPage() {
                     className="hover:bg-slate-50 cursor-pointer transition-colors"
                   >
                     <td className="px-6 py-4 text-sm text-slate-600">#{campaign.id}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{campaign.user_id}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{campaign.username}</td>
                     <td className="px-6 py-4 text-sm font-medium text-slate-800">{campaign.name}</td>
                     <td className="px-6 py-4 text-sm text-slate-600 max-w-xs truncate">{campaign.subject}</td>
                     <td className="px-6 py-4">

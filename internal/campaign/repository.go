@@ -14,14 +14,16 @@ func (r *Repository) FindAll(page, pageSize int) ([]Campaign, int64, error) {
 	var campaigns []Campaign
 	var total int64
 
-	query := r.db.Model(&Campaign{})
-
-	if err := query.Count(&total).Error; err != nil {
+	if err := r.db.Model(&Campaign{}).Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
 	offset := (page - 1) * pageSize
-	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&campaigns).Error; err != nil {
+	if err := r.db.Table("campaigns").
+		Select("campaigns.*, users.username").
+		Joins("LEFT JOIN users ON users.id = campaigns.user_id").
+		Order("campaigns.created_at DESC").Offset(offset).Limit(pageSize).
+		Find(&campaigns).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -32,14 +34,17 @@ func (r *Repository) FindAllByUserID(userID uint64, page, pageSize int) ([]Campa
 	var campaigns []Campaign
 	var total int64
 
-	query := r.db.Model(&Campaign{}).Where("user_id = ?", userID)
-
-	if err := query.Count(&total).Error; err != nil {
+	if err := r.db.Model(&Campaign{}).Where("user_id = ?", userID).Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
 	offset := (page - 1) * pageSize
-	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&campaigns).Error; err != nil {
+	if err := r.db.Table("campaigns").
+		Select("campaigns.*, users.username").
+		Joins("LEFT JOIN users ON users.id = campaigns.user_id").
+		Where("campaigns.user_id = ?", userID).
+		Order("campaigns.created_at DESC").Offset(offset).Limit(pageSize).
+		Find(&campaigns).Error; err != nil {
 		return nil, 0, err
 	}
 

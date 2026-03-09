@@ -77,7 +77,7 @@
     "loading": "캠페인 로딩 중...",
     "loadError": "캠페인을 불러오지 못했습니다.",
     "id": "ID",
-    "creatorId": "생성자 ID",
+    "creator": "생성자",
     "name": "이름",
     "subject": "제목",
     "status": "상태",
