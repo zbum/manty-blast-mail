@@ -129,7 +129,7 @@ export default function ReportPage() {
       {/* Summary Stats + Pie Chart */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Stats */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
           <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('report.summary')}</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-green-50 rounded-lg p-4">
@@ -140,9 +140,9 @@ export default function ReportPage() {
               <p className="text-xs font-medium text-slate-500 mb-1">{t('report.failed')}</p>
               <p className="text-2xl font-bold text-red-600">{failCount.toLocaleString()}</p>
             </div>
-            <div className="bg-indigo-50 rounded-lg p-4">
+            <div className="bg-blue-50 rounded-lg p-4">
               <p className="text-xs font-medium text-slate-500 mb-1">{t('report.totalRecipients')}</p>
-              <p className="text-2xl font-bold text-indigo-600">{(campaign.total_count ?? 0).toLocaleString()}</p>
+              <p className="text-2xl font-bold text-blue-600">{(campaign.total_count ?? 0).toLocaleString()}</p>
             </div>
             <div className="bg-amber-50 rounded-lg p-4">
               <p className="text-xs font-medium text-slate-500 mb-1">{t('report.successRate')}</p>
@@ -152,7 +152,7 @@ export default function ReportPage() {
         </div>
 
         {/* Pie Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
           <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('report.distribution')}</h3>
           {totalProcessed > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
@@ -191,8 +191,8 @@ export default function ReportPage() {
       </div>
 
       {/* Send Logs Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="px-6 py-4 border-b border-slate-200">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div className="px-6 py-4 border-b border-slate-100">
           <h3 className="text-lg font-semibold text-slate-800">
             {logsData ? t('report.sendLogs', { total: logsData.total.toLocaleString() }) : t('report.sendLogs', { total: '0' })}
           </h3>
@@ -205,7 +205,7 @@ export default function ReportPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200">
+                  <tr className="border-b border-slate-100">
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('report.email')}</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('report.status')}</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('report.error')}</th>
@@ -245,7 +245,7 @@ export default function ReportPage() {
             </div>
 
             {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+              <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
                 <p className="text-sm text-slate-500">
                   {t('common.pageWithTotal', { page: logsData!.page, totalPages, total: logsData!.total.toLocaleString() })}
                 </p>

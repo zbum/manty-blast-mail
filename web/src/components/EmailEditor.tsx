@@ -156,7 +156,7 @@ export default function EmailEditor({ content, onContentChange }: EmailEditorPro
           value={rawHtml}
           onChange={(e) => handleRawHtmlChange(e.target.value)}
           placeholder={t('editor.htmlPlaceholder')}
-          className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
+          className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
         />
       ) : (
         <div className="border border-slate-300 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent overflow-hidden">

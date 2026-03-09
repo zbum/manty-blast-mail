@@ -334,7 +334,7 @@ export default function ComposePage() {
         {/* Editor Panel */}
         <div className="lg:col-span-2 space-y-4">
           {/* Mode Toggle */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
             <div className="flex items-center gap-4 mb-4">
               <label className="text-sm font-medium text-slate-700">{t('compose.mode')}</label>
               <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
@@ -361,13 +361,13 @@ export default function ComposePage() {
               </div>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-4">
+            <div className="bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 mb-4">
               <p className="text-xs text-slate-500">
                 <span className="font-semibold text-slate-600">{t('compose.templateVariables')}</span> (case-sensitive):
-                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600 mx-1">{'{{.Name}}'}</code>
-                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600 mx-1">{'{{.Email}}'}</code>
+                <code className="bg-white border border-slate-100 px-1.5 py-0.5 rounded text-blue-600 mx-1">{'{{.Name}}'}</code>
+                <code className="bg-white border border-slate-100 px-1.5 py-0.5 rounded text-blue-600 mx-1">{'{{.Email}}'}</code>
                 and custom variables like
-                <code className="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600 mx-1">{'{{.Company}}'}</code>
+                <code className="bg-white border border-slate-100 px-1.5 py-0.5 rounded text-blue-600 mx-1">{'{{.Company}}'}</code>
               </p>
             </div>
 
@@ -381,13 +381,13 @@ export default function ComposePage() {
                 value={mimeContent}
                 onChange={(e) => { setMimeContent(e.target.value); setDirty(true); }}
                 placeholder={t('compose.rawMimePlaceholder')}
-                className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
+                className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
               />
             )}
           </div>
 
           {/* iCalendar Section (HTML mode only) */}
-          {mode === 'html' && <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+          {mode === 'html' && <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
             <div className="flex items-center gap-3 mb-3">
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -396,7 +396,7 @@ export default function ComposePage() {
                   onChange={(e) => { setIcalEnabled(e.target.checked); setDirty(true); }}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
               </label>
               <span className="text-sm font-medium text-slate-700">{t('compose.includeIcs')}</span>
             </div>
@@ -436,7 +436,7 @@ export default function ComposePage() {
                         value={icsFields.summary}
                         onChange={(e) => updateIcsField('summary', e.target.value)}
                         placeholder={t('compose.eventTitlePlaceholder')}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -446,7 +446,7 @@ export default function ComposePage() {
                           type="datetime-local"
                           value={icsFields.dtstart}
                           onChange={(e) => updateIcsField('dtstart', e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -455,7 +455,7 @@ export default function ComposePage() {
                           type="datetime-local"
                           value={icsFields.dtend}
                           onChange={(e) => updateIcsField('dtend', e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -466,7 +466,7 @@ export default function ComposePage() {
                         value={icsFields.location}
                         onChange={(e) => updateIcsField('location', e.target.value)}
                         placeholder={t('compose.locationPlaceholder')}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -476,7 +476,7 @@ export default function ComposePage() {
                         onChange={(e) => updateIcsField('description', e.target.value)}
                         placeholder={t('compose.descriptionPlaceholder')}
                         rows={3}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -487,7 +487,7 @@ export default function ComposePage() {
                           value={icsFields.organizerName}
                           onChange={(e) => updateIcsField('organizerName', e.target.value)}
                           placeholder={t('compose.organizerNamePlaceholder')}
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -497,7 +497,7 @@ export default function ComposePage() {
                           value={icsFields.organizerEmail}
                           onChange={(e) => updateIcsField('organizerEmail', e.target.value)}
                           placeholder={t('compose.organizerEmailPlaceholder')}
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -521,7 +521,7 @@ export default function ComposePage() {
                         {t('compose.generatedIcsPreview')}
                       </button>
                       {icsPreviewOpen && (
-                        <pre className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-600 overflow-x-auto max-h-48 overflow-y-auto whitespace-pre-wrap">
+                        <pre className="mt-2 p-3 bg-slate-50 border border-slate-100 rounded-lg text-xs font-mono text-slate-600 overflow-x-auto max-h-48 overflow-y-auto whitespace-pre-wrap">
                           {generatedIcs}
                         </pre>
                       )}
@@ -532,7 +532,7 @@ export default function ComposePage() {
                     value={icalContent}
                     onChange={(e) => { setIcalContent(e.target.value); setDirty(true); }}
                     placeholder={'BEGIN:VCALENDAR\nVERSION:2.0\n...'}
-                    className="w-full h-40 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
+                    className="w-full h-40 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
                   />
                 )}
               </div>
@@ -543,12 +543,12 @@ export default function ComposePage() {
         {/* Sidebar */}
         <div className="space-y-4">
           {/* Actions */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
             <h3 className="text-sm font-semibold text-slate-800">{t('compose.actions')}</h3>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
               {saving ? t('compose.saving') : t('compose.saveContent')}
             </button>
@@ -561,7 +561,7 @@ export default function ComposePage() {
           </div>
 
           {/* Test Send */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
             <h3 className="text-sm font-semibold text-slate-800 mb-3">{t('compose.testSend')}</h3>
             {dirty ? (
               <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
@@ -575,14 +575,14 @@ export default function ComposePage() {
                   onChange={(e) => setTestEmail(e.target.value)}
                   placeholder={t('compose.testEmailPlaceholder')}
                   required
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <input
                   type="text"
                   value={testName}
                   onChange={(e) => setTestName(e.target.value)}
                   placeholder={t('compose.testNamePlaceholder')}
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 {testVars.length > 0 && (
                   <div className="space-y-2">
@@ -594,14 +594,14 @@ export default function ComposePage() {
                           value={v.key}
                           onChange={(e) => setTestVars((prev) => prev.map((item, j) => j === i ? { ...item, key: e.target.value } : item))}
                           placeholder={t('compose.key')}
-                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                         <input
                           type="text"
                           value={v.value}
                           onChange={(e) => setTestVars((prev) => prev.map((item, j) => j === i ? { ...item, value: e.target.value } : item))}
                           placeholder={t('compose.value')}
-                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-1/2 px-2 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                         <button
                           type="button"
@@ -619,7 +619,7 @@ export default function ComposePage() {
                 <button
                   type="button"
                   onClick={() => setTestVars((prev) => [...prev, { key: '', value: '' }])}
-                  className="w-full text-xs text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer py-1"
+                  className="w-full text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer py-1"
                 >
                   {t('compose.addVariable')}
                 </button>
@@ -635,7 +635,7 @@ export default function ComposePage() {
           </div>
 
           {/* Campaign Info */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
             <h3 className="text-sm font-semibold text-slate-800 mb-3">{t('compose.campaignInfo')}</h3>
             <dl className="space-y-2 text-sm">
               <div>
@@ -659,7 +659,7 @@ export default function ComposePage() {
       {showPreview && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-slate-800">{t('compose.emailPreview')}</h3>
               <button
                 onClick={() => setShowPreview(false)}
@@ -689,7 +689,7 @@ function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
-    ready: 'bg-indigo-100 text-indigo-700',
+    ready: 'bg-blue-100 text-blue-700',
     sending: 'bg-amber-100 text-amber-700',
     paused: 'bg-orange-100 text-orange-700',
     completed: 'bg-green-100 text-green-700',

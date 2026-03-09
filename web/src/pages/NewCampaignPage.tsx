@@ -46,7 +46,7 @@ export default function NewCampaignPage() {
 
       <h2 className="text-2xl font-bold text-slate-800 mb-6">{t('newCampaign.title')}</h2>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 max-w-2xl">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 max-w-2xl">
         {error && (
           <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg border border-red-200 mb-4">
             {error}
@@ -62,7 +62,7 @@ export default function NewCampaignPage() {
               onChange={(e) => setName(e.target.value)}
               required
               placeholder={t('newCampaign.campaignNamePlaceholder')}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -74,7 +74,7 @@ export default function NewCampaignPage() {
               onChange={(e) => setSubject(e.target.value)}
               required
               placeholder={t('newCampaign.subjectPlaceholder')}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -86,7 +86,7 @@ export default function NewCampaignPage() {
               onChange={(e) => setFromName(e.target.value)}
               required
               placeholder={t('newCampaign.fromNamePlaceholder')}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -98,7 +98,7 @@ export default function NewCampaignPage() {
               onChange={(e) => setFromEmail(e.target.value)}
               required
               placeholder={t('newCampaign.fromEmailPlaceholder')}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -106,7 +106,7 @@ export default function NewCampaignPage() {
             <button
               type="submit"
               disabled={saving}
-              className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
               {saving ? t('newCampaign.creating') : t('newCampaign.createCampaign')}
             </button>

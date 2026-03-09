@@ -79,8 +79,8 @@ export default function AdminPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User List */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="px-6 py-4 border-b border-slate-200">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+          <div className="px-6 py-4 border-b border-slate-100">
             <h2 className="text-lg font-semibold text-slate-700">{t('admin.users')}</h2>
           </div>
           <div className="p-6">
@@ -91,7 +91,7 @@ export default function AdminPage() {
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200">
+                  <tr className="border-b border-slate-100">
                     <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.id')}</th>
                     <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.username')}</th>
                     <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.role')}</th>
@@ -129,8 +129,8 @@ export default function AdminPage() {
         </div>
 
         {/* Create User */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 h-fit">
-          <div className="px-6 py-4 border-b border-slate-200">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 h-fit">
+          <div className="px-6 py-4 border-b border-slate-100">
             <h2 className="text-lg font-semibold text-slate-700">{t('admin.createUser')}</h2>
           </div>
           <form onSubmit={handleCreateUser} className="p-6 space-y-4">
@@ -148,20 +148,20 @@ export default function AdminPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.username')}</label>
               <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder={t('admin.usernamePlaceholder')} />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('admin.usernamePlaceholder')} />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.password')}</label>
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder={t('admin.passwordPlaceholder')} />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('admin.passwordPlaceholder')} />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t('admin.confirmPassword')}</label>
               <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder={t('admin.confirmPasswordPlaceholder')} />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('admin.confirmPasswordPlaceholder')} />
             </div>
             <button type="submit" disabled={isSubmitting}
-              className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               {isSubmitting ? t('admin.creating') : t('admin.createUser')}
             </button>
           </form>

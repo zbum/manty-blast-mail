@@ -196,7 +196,7 @@ export default function SendingPage() {
       )}
 
       {/* Progress Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-slate-700">{t('sending.progress')}</span>
           <span className="text-sm text-slate-500">
@@ -205,7 +205,7 @@ export default function SendingPage() {
         </div>
         <div className="w-full bg-slate-200 rounded-full h-4 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-300"
+            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
         </div>
@@ -216,14 +216,14 @@ export default function SendingPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label={t('sending.sent')} value={sentCount} color="text-green-600" bgColor="bg-green-50" />
         <StatCard label={t('sending.failed')} value={failCount} color="text-red-600" bgColor="bg-red-50" />
-        <StatCard label={t('sending.remaining')} value={remaining} color="text-indigo-600" bgColor="bg-indigo-50" />
+        <StatCard label={t('sending.remaining')} value={remaining} color="text-blue-600" bgColor="bg-blue-50" />
         <StatCard label={t('sending.rate')} value={t('sending.ratePerSec', { rate: currentRate })} color="text-amber-600" bgColor="bg-amber-50" />
       </div>
 
       {/* Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Action Buttons */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
           <h3 className="text-sm font-semibold text-slate-800 mb-4">{t('sending.controls')}</h3>
           <div className="flex flex-wrap gap-3">
             {isDraft && (
@@ -278,7 +278,7 @@ export default function SendingPage() {
         </div>
 
         {/* Rate Control */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
           <h3 className="text-sm font-semibold text-slate-800 mb-4">{t('sending.sendRate')}</h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
@@ -288,7 +288,7 @@ export default function SendingPage() {
                 max={100}
                 value={rateInput}
                 onChange={(e) => setRateInput(Number(e.target.value))}
-                className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
               <span className="text-sm font-mono text-slate-800 w-16 text-right">
                 {t('sending.ratePerSec', { rate: rateInput })}
@@ -296,7 +296,7 @@ export default function SendingPage() {
             </div>
             <button
               onClick={handleRateChange}
-              className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
             >
               {t('sending.applyRate')}
             </button>
@@ -305,8 +305,8 @@ export default function SendingPage() {
       </div>
 
       {/* Live Results */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="px-6 py-4 border-b border-slate-200">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div className="px-6 py-4 border-b border-slate-100">
           <h3 className="text-sm font-semibold text-slate-800">
             {t('sending.liveResults', { count: results.length })}
           </h3>
@@ -314,7 +314,7 @@ export default function SendingPage() {
         <div className="max-h-80 overflow-y-auto">
           <table className="w-full">
             <thead className="sticky top-0 bg-white">
-              <tr className="border-b border-slate-200">
+              <tr className="border-b border-slate-100">
                 <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('sending.email')}</th>
                 <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('sending.status')}</th>
                 <th className="text-left px-6 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('sending.error')}</th>
@@ -358,7 +358,7 @@ export default function SendingPage() {
 
 function StatCard({ label, value, color, bgColor }: { label: string; value: number | string; color: string; bgColor: string }) {
   return (
-    <div className={`${bgColor} rounded-xl p-4`}>
+    <div className={`${bgColor} rounded-2xl p-4`}>
       <p className="text-xs font-medium text-slate-500 mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>
         {typeof value === 'number' ? value.toLocaleString() : value}

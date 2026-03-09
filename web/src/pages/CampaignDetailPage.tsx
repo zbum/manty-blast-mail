@@ -117,7 +117,7 @@ export default function CampaignDetailPage() {
           )}
           <button
             onClick={() => navigate(`/campaigns/${campaignId}/compose`)}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
             {t('campaignDetail.compose')}
           </button>
@@ -137,7 +137,7 @@ export default function CampaignDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-slate-200 mb-6">
+      <div className="border-b border-slate-100 mb-6">
         <div className="flex gap-6">
           {tabs.map((tab) => (
             <button
@@ -145,7 +145,7 @@ export default function CampaignDetailPage() {
               onClick={() => setActiveTab(tab.key)}
               className={`pb-3 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
                 activeTab === tab.key
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-indigo-500 text-blue-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -213,7 +213,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 max-w-2xl">
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 max-w-2xl">
       <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('campaignDetail.editInfo')}</h3>
 
       {message && (
@@ -232,7 +232,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -243,7 +243,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -254,7 +254,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
             value={fromName}
             onChange={(e) => setFromName(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -265,7 +265,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
             value={fromEmail}
             onChange={(e) => setFromEmail(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -273,7 +273,7 @@ function CampaignInfoTab({ campaign, onUpdated }: { campaign: Campaign; onUpdate
           <button
             type="submit"
             disabled={saving}
-            className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
             {saving ? t('campaignDetail.saving') : t('campaignDetail.saveChanges')}
           </button>
@@ -436,12 +436,12 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
       {/* Upload and Manual Entry */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* File Upload */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-slate-800">{t('campaignDetail.uploadCsv')}</h3>
             <button
               onClick={handleDownloadTemplate}
-              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer flex items-center gap-1"
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer flex items-center gap-1"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -471,12 +471,12 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
             <p className="text-xs text-slate-400 mt-1">{t('campaignDetail.orDragDrop')}</p>
           </div>
           {uploadMutation.isPending && (
-            <p className="text-sm text-indigo-600 mt-3">{t('campaignDetail.uploading')}</p>
+            <p className="text-sm text-blue-600 mt-3">{t('campaignDetail.uploading')}</p>
           )}
         </div>
 
         {/* Manual Entry */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
           <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('campaignDetail.addManually')}</h3>
           <form onSubmit={handleAddManual} className="space-y-3">
             <div>
@@ -487,7 +487,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                 onChange={(e) => setManualEmail(e.target.value)}
                 required
                 placeholder={t('campaignDetail.emailPlaceholder')}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -497,7 +497,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
                 placeholder={t('campaignDetail.namePlaceholder')}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             {manualVars.length > 0 && (
@@ -510,14 +510,14 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                       value={v.key}
                       onChange={(e) => setManualVars((prev) => prev.map((item, j) => j === i ? { ...item, key: e.target.value } : item))}
                       placeholder={t('campaignDetail.key')}
-                      className="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                     <input
                       type="text"
                       value={v.value}
                       onChange={(e) => setManualVars((prev) => prev.map((item, j) => j === i ? { ...item, value: e.target.value } : item))}
                       placeholder={t('campaignDetail.value')}
-                      className="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                     <button
                       type="button"
@@ -535,14 +535,14 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
             <button
               type="button"
               onClick={() => setManualVars((prev) => [...prev, { key: '', value: '' }])}
-              className="w-full text-xs text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer py-1"
+              className="w-full text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer py-1"
             >
               {t('campaignDetail.addVariable')}
             </button>
             <button
               type="submit"
               disabled={addManualMutation.isPending}
-              className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
+              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full"
             >
               {addManualMutation.isPending ? t('campaignDetail.adding') : t('campaignDetail.addRecipient')}
             </button>
@@ -562,8 +562,8 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
       )}
 
       {/* Recipients Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-800">
             {recipientData ? t('campaignDetail.recipientsCount', { total: recipientData.total.toLocaleString() }) : t('campaignDetail.tabRecipients')}
           </h3>
@@ -574,7 +574,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder={t('campaignDetail.searchPlaceholder')}
-                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-56"
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-56"
               />
               <button
                 type="submit"
@@ -608,7 +608,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200">
+                  <tr className="border-b border-slate-100">
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('common.email')}</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('common.name')}</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">{t('campaignDetail.variables')}</th>
@@ -657,7 +657,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
             </div>
 
             {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+              <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
                 <p className="text-sm text-slate-500">
                   {t('common.page', { page: recipientData!.page, totalPages })}
                 </p>
@@ -690,7 +690,7 @@ function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
   const styles: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-700',
-    ready: 'bg-indigo-100 text-indigo-700',
+    ready: 'bg-blue-100 text-blue-700',
     sending: 'bg-amber-100 text-amber-700',
     paused: 'bg-orange-100 text-orange-700',
     completed: 'bg-green-100 text-green-700',

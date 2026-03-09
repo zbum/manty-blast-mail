@@ -55,8 +55,8 @@ export default function ProfilePage() {
 
       <div className="space-y-6 max-w-lg">
         {/* User Info */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="px-6 py-4 border-b border-slate-200">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+          <div className="px-6 py-4 border-b border-slate-100">
             <h2 className="text-lg font-semibold text-slate-700">{t('profile.accountInfo')}</h2>
           </div>
           <div className="p-6 space-y-3">
@@ -76,8 +76,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Change Password */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="px-6 py-4 border-b border-slate-200">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+          <div className="px-6 py-4 border-b border-slate-100">
             <h2 className="text-lg font-semibold text-slate-700">{t('profile.changePassword')}</h2>
           </div>
           <form onSubmit={handleChangePassword} className="p-6 space-y-4">
@@ -95,17 +95,17 @@ export default function ProfilePage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t('profile.currentPassword')}</label>
               <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder={t('profile.currentPasswordPlaceholder')} />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('profile.currentPasswordPlaceholder')} />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t('profile.newPassword')}</label>
               <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder={t('profile.newPasswordPlaceholder')} />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('profile.newPasswordPlaceholder')} />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t('profile.confirmNewPassword')}</label>
               <input type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder={t('profile.confirmNewPasswordPlaceholder')} />
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('profile.confirmNewPasswordPlaceholder')} />
             </div>
             <button type="submit" disabled={isPwSubmitting}
               className="w-full bg-slate-700 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
