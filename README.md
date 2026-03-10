@@ -24,37 +24,61 @@ A high-performance bulk email sending system with a modern web UI. Built with Go
 |-------|-----------|
 | Backend | Go 1.26, chi router, GORM, gorilla/websocket, zerolog |
 | Frontend | React 19, TypeScript, Vite, TanStack Query, Tailwind CSS, Recharts |
-| Database | MySQL |
+| Database | MySQL, SQLite |
 | Email | net/smtp with connection pooling, RFC 2047 MIME |
 
 ## Quick Start
 
-### Prerequisites
+### Option A: Download Binary (Easiest)
+
+Download the latest binary from [Releases](https://github.com/zbum/manty-blast-mail/releases).
+
+```bash
+# Linux (amd64)
+chmod +x manty-blast-mail-linux-amd64
+
+# Create config
+cp config.yaml.sqlite-sample config.yaml
+# Edit config.yaml with your SMTP settings
+
+# Run
+./manty-blast-mail-linux-amd64 -config config.yaml
+```
+
+The server starts at `http://localhost:8080`. Default login: `admin` / `admin`
+
+### Option B: Build from Source
+
+#### Prerequisites
 
 - Go 1.26+
 - Node.js 18+
-- MySQL 8.0+
+- MySQL 8.0+ (if using MySQL)
 
-### 1. Database Setup
+#### 1. Database Setup
+
+**SQLite** (no setup required):
+
+```bash
+cp config.yaml.sqlite-sample config.yaml
+```
+
+**MySQL**:
 
 ```sql
 CREATE DATABASE mail_sender CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-Run the migration:
-
 ```bash
 mysql -u root -p mail_sender < migrations/001_init.sql
+cp config.yaml.sample config.yaml
 ```
 
 Default login: `admin` / `admin`
 
-### 2. Configuration
+#### 2. Configuration
 
-```bash
-cp config.yaml.sample config.yaml
-# Edit config.yaml with your database and SMTP settings
-```
+Edit `config.yaml` with your SMTP settings.
 
 All settings can be overridden with environment variables:
 
@@ -62,6 +86,7 @@ All settings can be overridden with environment variables:
 |--------|---------------------|
 | `server.port` | `PORT` |
 | `server.session_secret` | `SESSION_SECRET` |
+| `database.driver` | `DB_DRIVER` (`mysql` or `sqlite`) |
 | `database.host` | `DB_HOST` |
 | `database.port` | `DB_PORT` |
 | `database.user` | `DB_USER` |
@@ -72,7 +97,9 @@ All settings can be overridden with environment variables:
 | `smtp.username` | `SMTP_USERNAME` |
 | `smtp.password` | `SMTP_PASSWORD` |
 
-### 3. Build & Run
+> **Note**: Port 25 works without SMTP authentication. Leave `username` and `password` empty.
+
+#### 3. Build & Run
 
 ```bash
 make all    # Build frontend + backend
@@ -81,7 +108,7 @@ make run    # Build and start server
 
 The server starts at `http://localhost:8080`.
 
-### Development
+#### Development
 
 ```bash
 make dev-frontend   # Vite dev server (port 5173)

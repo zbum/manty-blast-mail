@@ -24,37 +24,61 @@ Go와 React로 구축된 고성능 대량 이메일 발송 시스템입니다.
 |------|------|
 | 백엔드 | Go 1.26, chi 라우터, GORM, gorilla/websocket, zerolog |
 | 프론트엔드 | React 19, TypeScript, Vite, TanStack Query, Tailwind CSS, Recharts |
-| 데이터베이스 | MySQL |
+| 데이터베이스 | MySQL, SQLite |
 | 이메일 | net/smtp 연결 풀링, RFC 2047 MIME |
 
 ## 빠른 시작
 
-### 사전 요구사항
+### 방법 A: 바이너리 다운로드 (가장 간단)
+
+[Releases](https://github.com/zbum/manty-blast-mail/releases)에서 플랫폼에 맞는 바이너리를 다운로드합니다.
+
+```bash
+# Linux (amd64)
+chmod +x manty-blast-mail-linux-amd64
+
+# 설정 파일 생성
+cp config.yaml.sqlite-sample config.yaml
+# config.yaml을 열어 SMTP 설정 수정
+
+# 실행
+./manty-blast-mail-linux-amd64 -config config.yaml
+```
+
+서버가 `http://localhost:8080`에서 시작됩니다. 기본 로그인: `admin` / `admin`
+
+### 방법 B: 소스에서 빌드
+
+#### 사전 요구사항
 
 - Go 1.26+
 - Node.js 18+
-- MySQL 8.0+
+- MySQL 8.0+ (MySQL 사용 시)
 
-### 1. 데이터베이스 설정
+#### 1. 데이터베이스 설정
+
+**SQLite** (별도 설정 불필요):
+
+```bash
+cp config.yaml.sqlite-sample config.yaml
+```
+
+**MySQL**:
 
 ```sql
 CREATE DATABASE mail_sender CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-마이그레이션 실행:
-
 ```bash
 mysql -u root -p mail_sender < migrations/001_init.sql
+cp config.yaml.sample config.yaml
 ```
 
 기본 로그인: `admin` / `admin`
 
-### 2. 설정
+#### 2. 설정
 
-```bash
-cp config.yaml.sample config.yaml
-# config.yaml을 열어 데이터베이스 및 SMTP 설정 수정
-```
+`config.yaml`을 열어 SMTP 설정을 수정합니다.
 
 모든 설정은 환경변수로 오버라이드 가능합니다:
 
@@ -62,6 +86,7 @@ cp config.yaml.sample config.yaml
 |------|----------|
 | `server.port` | `PORT` |
 | `server.session_secret` | `SESSION_SECRET` |
+| `database.driver` | `DB_DRIVER` (`mysql` 또는 `sqlite`) |
 | `database.host` | `DB_HOST` |
 | `database.port` | `DB_PORT` |
 | `database.user` | `DB_USER` |
@@ -72,7 +97,9 @@ cp config.yaml.sample config.yaml
 | `smtp.username` | `SMTP_USERNAME` |
 | `smtp.password` | `SMTP_PASSWORD` |
 
-### 3. 빌드 및 실행
+> **참고**: 포트 25는 SMTP 인증 없이 사용 가능합니다. `username`과 `password`를 비워두세요.
+
+#### 3. 빌드 및 실행
 
 ```bash
 make all    # 프론트엔드 + 백엔드 빌드
@@ -81,7 +108,7 @@ make run    # 빌드 후 서버 시작
 
 서버가 `http://localhost:8080`에서 시작됩니다.
 
-### 개발 모드
+#### 개발 모드
 
 ```bash
 make dev-frontend   # Vite 개발 서버 (포트 5173)
