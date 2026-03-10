@@ -46,24 +46,41 @@ function parseDTValue(icsdt: string): string {
 
 function parseIcsString(ics: string): IcsFields | null {
   if (!ics || !ics.includes('BEGIN:VEVENT')) return null;
-  // Extract only the VEVENT section to avoid matching VTIMEZONE fields
-  const veventMatch = ics.match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/);
-  const vevent = veventMatch ? veventMatch[0] : ics;
+
+  // Extract VEVENT lines by splitting on any line ending and finding the section
+  const lines = ics.split(/\r?\n/);
+  const veventLines: string[] = [];
+  let inVevent = false;
+  for (const line of lines) {
+    if (line.trim() === 'BEGIN:VEVENT') { inVevent = true; continue; }
+    if (line.trim() === 'END:VEVENT') break;
+    if (inVevent) veventLines.push(line);
+  }
+
+  const findLine = (key: string): string => {
+    for (const line of veventLines) {
+      if (line.startsWith(key + ':') || line.startsWith(key + ';')) {
+        return line;
+      }
+    }
+    return '';
+  };
+
   const get = (key: string): string => {
-    const re = new RegExp(`^${key}:(.*)$`, 'm');
-    const m = vevent.match(re);
-    return m ? m[1].trim() : '';
+    const line = findLine(key);
+    if (!line) return '';
+    const colonIdx = line.indexOf(':');
+    return colonIdx >= 0 ? line.slice(colonIdx + 1).trim() : '';
   };
+
   const getDT = (key: string): string => {
-    // Match DTSTART:... or DTSTART;TZID=...:...
-    const re = new RegExp(`^${key}[;:](.*)$`, 'm');
-    const m = vevent.match(re);
-    if (!m) return '';
-    const raw = m[1].trim();
-    // Extract datetime value: handle TZID=Asia/Seoul:20260308T100000
-    const match = raw.match(/(\d{8}T\d{6})/);
-    return match ? match[1] : raw;
+    const line = findLine(key);
+    if (!line) return '';
+    // Extract datetime value: 20260308T100000
+    const match = line.match(/(\d{8}T\d{6})/);
+    return match ? match[1] : '';
   };
+
   const summary = get('SUMMARY');
   const dtstart = parseDTValue(getDT('DTSTART'));
   const dtend = parseDTValue(getDT('DTEND'));
@@ -73,10 +90,12 @@ function parseIcsString(ics: string): IcsFields | null {
 
   let organizerName = '';
   let organizerEmail = '';
-  const orgMatch = vevent.match(/^ORGANIZER(?:;CN=([^:;]*))?:mailto:(.*)$/m);
-  if (orgMatch) {
-    organizerName = (orgMatch[1] || '').replace(/^"|"$/g, '');
-    organizerEmail = orgMatch[2]?.trim() || '';
+  const orgLine = findLine('ORGANIZER');
+  if (orgLine) {
+    const cnMatch = orgLine.match(/;CN=([^:;]*)/);
+    organizerName = cnMatch ? cnMatch[1].replace(/^"|"$/g, '') : '';
+    const mailtoMatch = orgLine.match(/:mailto:(.*)$/);
+    organizerEmail = mailtoMatch ? mailtoMatch[1].trim() : '';
   }
 
   return { summary, dtstart, dtend, location, description, organizerName, organizerEmail };
