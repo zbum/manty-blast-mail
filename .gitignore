@@ -21,6 +21,10 @@ web/dist/
 # Docs
 PROMPT_HISTORY.md
 
+# Runtime
+*.pid
+*.log
+
 # OS
 .DS_Store
 Thumbs.db
