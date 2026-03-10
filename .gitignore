@@ -18,6 +18,9 @@ web/dist/
 *.swp
 *.swo
 
+# Docs
+PROMPT_HISTORY.md
+
 # OS
 .DS_Store
 Thumbs.db

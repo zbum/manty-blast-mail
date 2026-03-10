@@ -1,0 +1,20 @@
+server:
+  port: 8080
+  session_secret: "change-me-in-production-32-bytes!"
+
+database:
+  driver: "sqlite"
+  name: "manty_blast_mail.db"
+
+smtp:
+  host: "smtp.example.com"
+  port: 465                # 465 for SMTPS, 587/25 for STARTTLS
+  username: "user@example.com"
+  password: "your-smtp-password"
+  pool_size: 10
+
+sender:
+  default_rate_limit: 2    # emails per second
+  max_rate_limit: 100
+  worker_count: 5
+  batch_size: 100
