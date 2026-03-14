@@ -14,6 +14,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/zbum/manty-blast-mail/internal/audit"
+	"github.com/zbum/manty-blast-mail/internal/auth"
 	"github.com/zbum/manty-blast-mail/internal/campaign"
 	"github.com/zbum/manty-blast-mail/internal/config"
 	"github.com/zbum/manty-blast-mail/internal/mailer"
@@ -35,22 +37,24 @@ type CampaignRunner struct {
 
 // Service orchestrates campaign sending operations.
 type Service struct {
-	db       *gorm.DB
-	mailer   *mailer.Mailer
-	hub      *ws.Hub
-	cfg      config.SenderConfig
-	runners  map[uint64]*CampaignRunner
-	mu       sync.RWMutex
+	db           *gorm.DB
+	mailer       *mailer.Mailer
+	hub          *ws.Hub
+	cfg          config.SenderConfig
+	auditService *audit.Service
+	runners      map[uint64]*CampaignRunner
+	mu           sync.RWMutex
 }
 
 // NewService creates a new SendService.
-func NewService(db *gorm.DB, m *mailer.Mailer, hub *ws.Hub, cfg config.SenderConfig) *Service {
+func NewService(db *gorm.DB, m *mailer.Mailer, hub *ws.Hub, cfg config.SenderConfig, auditService *audit.Service) *Service {
 	return &Service{
-		db:      db,
-		mailer:  m,
-		hub:     hub,
-		cfg:     cfg,
-		runners: make(map[uint64]*CampaignRunner),
+		db:           db,
+		mailer:       m,
+		hub:          hub,
+		cfg:          cfg,
+		auditService: auditService,
+		runners:      make(map[uint64]*CampaignRunner),
 	}
 }
 
@@ -115,6 +119,20 @@ func (s *Service) Start(campaignID uint64) error {
 
 	if c.Status != "draft" && c.Status != "paused" {
 		return fmt.Errorf("campaign %d cannot be started (status: %s)", campaignID, c.Status)
+	}
+
+	// Validate campaign has content
+	if c.Subject == "" {
+		return fmt.Errorf("campaign has no subject")
+	}
+	if c.BodyType == "raw_mime" && c.BodyRawMIME == "" {
+		return fmt.Errorf("campaign has no email content")
+	}
+	if c.BodyType != "raw_mime" && c.BodyHTML == "" {
+		return fmt.Errorf("campaign has no email content")
+	}
+	if c.FromEmail == "" {
+		return fmt.Errorf("campaign has no sender email")
 	}
 
 	// Count pending recipients
@@ -192,6 +210,9 @@ func (s *Service) runCampaign(ctx context.Context, campaignID uint64, runner *Ca
 		err := s.db.Where("campaign_id = ? AND status = ?", cID, "pending").
 			Offset(offset).Limit(limit).
 			Find(&recipients).Error
+		if err == nil {
+			recipient.DecryptRecipients(recipients)
+		}
 		return recipients, err
 	}
 
@@ -358,10 +379,22 @@ func (s *Service) HandleStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Load campaign info for audit before starting
+	var c campaign.Campaign
+	s.db.First(&c, campaignID)
+
 	if err := s.Start(campaignID); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	// Audit log
+	actorID, _ := r.Context().Value(auth.UserIDKey).(uint64)
+	var actor auth.User
+	s.db.First(&actor, actorID)
+	var recipientCount int64
+	s.db.Model(&recipient.Recipient{}).Where("campaign_id = ? AND status = ?", campaignID, "pending").Count(&recipientCount)
+	s.auditService.LogMailSend(actorID, actor.Username, campaignID, c.Name, "start", int(recipientCount))
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"message":     "campaign sending started",

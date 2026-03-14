@@ -11,24 +11,27 @@ import (
 	"gorm.io/gorm"
 
 	mailsender "github.com/zbum/manty-blast-mail"
+	"github.com/zbum/manty-blast-mail/internal/audit"
 	"github.com/zbum/manty-blast-mail/internal/auth"
 	"github.com/zbum/manty-blast-mail/internal/campaign"
 	"github.com/zbum/manty-blast-mail/internal/config"
 	"github.com/zbum/manty-blast-mail/internal/mailer"
 	"github.com/zbum/manty-blast-mail/internal/recipient"
 	"github.com/zbum/manty-blast-mail/internal/report"
+	"github.com/zbum/manty-blast-mail/internal/search"
 	"github.com/zbum/manty-blast-mail/internal/sender"
 	ws "github.com/zbum/manty-blast-mail/internal/websocket"
 )
 
 type Server struct {
-	cfg    *config.Config
-	db     *gorm.DB
-	router *chi.Mux
+	cfg     *config.Config
+	db      *gorm.DB
+	router  *chi.Mux
+	indexer *search.Indexer
 }
 
-func New(cfg *config.Config, db *gorm.DB) *Server {
-	s := &Server{cfg: cfg, db: db}
+func New(cfg *config.Config, db *gorm.DB, indexer *search.Indexer) *Server {
+	s := &Server{cfg: cfg, db: db, indexer: indexer}
 	s.setupRoutes()
 	return s
 }
@@ -39,21 +42,27 @@ func (s *Server) setupRoutes() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RealIP)
 
+	// Audit
+	auditService := audit.NewService(s.db, s.indexer)
+	auditHandler := audit.NewHandler(auditService)
+
 	// Auth
 	sessionStore := auth.NewSessionStore(s.cfg.Server.SessionSecret)
-	authHandler := auth.NewHandler(s.db, sessionStore)
+	authHandler := auth.NewHandler(s.db, sessionStore, auditService)
 	authMiddleware := auth.NewMiddleware(sessionStore)
+	oauthHandler := auth.NewOAuthHandler(s.db, sessionStore, s.cfg.OAuth)
 
 	// Services
 	hub := ws.NewHub()
 	go hub.Run()
 
 	ml := mailer.New(s.cfg.SMTP)
-	sendService := sender.NewService(s.db, ml, hub, s.cfg.Sender)
+	sendService := sender.NewService(s.db, ml, hub, s.cfg.Sender, auditService)
 
-	campaignHandler := campaign.NewHandler(s.db, ml)
-	recipientHandler := recipient.NewHandler(s.db)
+	campaignHandler := campaign.NewHandler(s.db, ml, s.indexer)
+	recipientHandler := recipient.NewHandler(s.db, s.indexer)
 	reportHandler := report.NewHandler(s.db)
+	searchHandler := search.NewHandler(s.indexer)
 	wsHandler := ws.NewHandler(hub, sendService)
 
 	// Health check
@@ -65,14 +74,25 @@ func (s *Server) setupRoutes() {
 	// API routes
 	r.Route("/api/v1", func(r chi.Router) {
 		// Auth (public)
+		r.Get("/auth/info", oauthHandler.HandleAuthInfo)
 		r.Post("/auth/login", authHandler.Login)
+		r.Get("/auth/oauth/redirect", oauthHandler.HandleRedirect)
+		r.Get("/auth/oauth/callback", oauthHandler.HandleCallback)
 
-		// Protected routes
+		// Authenticated routes (pending users can access)
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddleware.RequireAuth)
 
 			r.Post("/auth/logout", authHandler.Logout)
 			r.Get("/auth/me", authHandler.Me)
+		})
+
+		// Approved routes (pending users blocked)
+		r.Group(func(r chi.Router) {
+			r.Use(authMiddleware.RequireAuth)
+			r.Use(authMiddleware.RequireApproved)
+
+			// User management (admin only, checked in handler)
 			r.Post("/auth/users", authHandler.CreateUser)
 			r.Get("/auth/users", authHandler.ListUsers)
 			r.Delete("/auth/users/{userId}", authHandler.DeleteUser)
@@ -109,6 +129,12 @@ func (s *Server) setupRoutes() {
 			r.Get("/campaigns/{id}/logs", reportHandler.Logs)
 			r.Get("/campaigns/{id}/report/export", reportHandler.Export)
 			r.Get("/dashboard", reportHandler.Dashboard)
+
+			// Search
+			r.Get("/search", searchHandler.Search)
+
+			// Audit logs (admin only, checked in handler middleware)
+			r.Get("/audit-logs", auditHandler.List)
 		})
 	})
 

@@ -41,6 +41,7 @@
     "campaigns": "캠페인",
     "userManagement": "사용자 관리",
     "profile": "프로필",
+    "auditLogs": "감사 로그",
     "logout": "로그아웃"
   },
   "login": {
@@ -52,6 +53,8 @@
     "passwordPlaceholder": "비밀번호를 입력하세요",
     "signingIn": "로그인 중...",
     "signIn": "로그인",
+    "ssoSignIn": "SSO로 로그인",
+    "or": "또는",
     "failed": "로그인에 실패했습니다. 자격 증명을 확인하세요."
   },
   "dashboard": {
@@ -265,6 +268,11 @@
     "noLogs": "로그가 없습니다.",
     "exportFailed": "리포트 내보내기에 실패했습니다."
   },
+  "pending": {
+    "title": "승인 대기 중",
+    "message": "관리자가 계정을 승인할 때까지 기다려 주세요. 승인 후 서비스를 이용하실 수 있습니다.",
+    "refresh": "새로고침"
+  },
   "admin": {
     "title": "사용자 관리",
     "users": "사용자",
@@ -273,9 +281,11 @@
     "id": "ID",
     "username": "사용자 이름",
     "role": "역할",
+    "authType": "인증 방식",
     "action": "작업",
     "roleAdmin": "관리자",
     "roleUser": "사용자",
+    "rolePending": "대기",
     "deleteConfirm": "사용자 \"{{username}}\"을(를) 삭제하시겠습니까?",
     "deleteFailed": "사용자 삭제에 실패했습니다.",
     "clickToToggleRole": "클릭하여 역할 변경",
@@ -340,5 +350,28 @@
     "undo": "실행 취소",
     "redo": "다시 실행",
     "linkPlaceholder": "https://example.com"
+  },
+  "audit": {
+    "title": "감사 로그",
+    "totalLogs": "감사 로그 ({{total}})",
+    "time": "시간",
+    "actor": "수행자",
+    "action": "작업",
+    "target": "대상",
+    "detail": "상세",
+    "actionRoleChange": "역할 변경",
+    "actionMailStart": "메일 발송",
+    "actionUserCreate": "사용자 생성",
+    "actionUserDelete": "사용자 삭제",
+    "recipientCount": "{{count}}명 수신",
+    "noLogs": "감사 로그가 없습니다."
+  },
+  "search": {
+    "placeholder": "캠페인, 수신자, 로그 검색...",
+    "noResults": "검색 결과가 없습니다.",
+    "resultCount": "{{count}}개 결과",
+    "typeCampaign": "캠페인",
+    "typeRecipient": "수신자",
+    "typeAudit": "감사 로그"
   }
 }

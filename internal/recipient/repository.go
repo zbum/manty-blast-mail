@@ -1,6 +1,10 @@
 package recipient
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 type Repository struct {
 	db *gorm.DB
@@ -11,17 +15,17 @@ func NewRepository(db *gorm.DB) *Repository {
 }
 
 // FindByCampaignID returns a paginated list of recipients for the given campaign,
-// along with the total count. If search is non-empty, filters by email or name.
+// along with the total count. If search is non-empty, filters by email or name
+// after decryption (in-memory filtering).
 func (r *Repository) FindByCampaignID(campaignID uint64, page, pageSize int, search string) ([]Recipient, int64, error) {
+	if search != "" {
+		return r.findByCampaignIDWithSearch(campaignID, page, pageSize, search)
+	}
+
 	var recipients []Recipient
 	var total int64
 
 	query := r.db.Model(&Recipient{}).Where("campaign_id = ?", campaignID)
-
-	if search != "" {
-		like := "%" + search + "%"
-		query = query.Where("email LIKE ? OR name LIKE ?", like, like)
-	}
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -32,7 +36,39 @@ func (r *Repository) FindByCampaignID(campaignID uint64, page, pageSize int, sea
 		return nil, 0, err
 	}
 
+	DecryptRecipients(recipients)
 	return recipients, total, nil
+}
+
+// findByCampaignIDWithSearch loads all recipients, decrypts, filters in memory, then paginates.
+func (r *Repository) findByCampaignIDWithSearch(campaignID uint64, page, pageSize int, search string) ([]Recipient, int64, error) {
+	var all []Recipient
+	if err := r.db.Where("campaign_id = ?", campaignID).Order("id ASC").Find(&all).Error; err != nil {
+		return nil, 0, err
+	}
+
+	DecryptRecipients(all)
+
+	searchLower := strings.ToLower(search)
+	var filtered []Recipient
+	for _, rec := range all {
+		if strings.Contains(strings.ToLower(rec.Email), searchLower) ||
+			strings.Contains(strings.ToLower(rec.Name), searchLower) {
+			filtered = append(filtered, rec)
+		}
+	}
+
+	total := int64(len(filtered))
+	offset := (page - 1) * pageSize
+	if offset >= len(filtered) {
+		return []Recipient{}, total, nil
+	}
+	end := offset + pageSize
+	if end > len(filtered) {
+		end = len(filtered)
+	}
+
+	return filtered[offset:end], total, nil
 }
 
 // FindPendingBatch returns up to batchSize recipients with status "pending" for the
@@ -43,13 +79,22 @@ func (r *Repository) FindPendingBatch(campaignID uint64, batchSize int) ([]Recip
 		Order("id ASC").
 		Limit(batchSize).
 		Find(&recipients).Error
+	if err == nil {
+		DecryptRecipients(recipients)
+	}
 	return recipients, err
 }
 
 // BatchCreate inserts multiple recipients in a single batch operation.
+// Email and Name fields are encrypted before saving.
 func (r *Repository) BatchCreate(recipients []Recipient) error {
 	if len(recipients) == 0 {
 		return nil
+	}
+	for i := range recipients {
+		if err := recipients[i].EncryptFields(); err != nil {
+			return err
+		}
 	}
 	return r.db.CreateInBatches(recipients, 500).Error
 }

@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { login } from '../api/client';
+import { login, getAuthInfo } from '../api/client';
 import { useAuth } from '../App';
 
 export default function LoginPage() {
@@ -12,6 +12,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [oauthEnabled, setOauthEnabled] = useState(false);
+
+  useEffect(() => {
+    getAuthInfo().then((res) => {
+      setOauthEnabled(res.data.oauth_enabled);
+    }).catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -28,6 +35,10 @@ export default function LoginPage() {
     }
   };
 
+  const handleSSOLogin = () => {
+    window.location.href = '/api/v1/auth/oauth/redirect';
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="w-full max-w-md">
@@ -36,6 +47,30 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold text-slate-800">{t('login.title')}</h1>
             <p className="text-sm text-slate-500 mt-1">{t('login.subtitle')}</p>
           </div>
+
+          {oauthEnabled && (
+            <>
+              <button
+                type="button"
+                onClick={handleSSOLogin}
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 rounded-lg text-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                {t('login.ssoSignIn')}
+              </button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white px-3 text-slate-400">{t('login.or')}</span>
+                </div>
+              </div>
+            </>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (

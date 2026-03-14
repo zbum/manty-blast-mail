@@ -3,12 +3,13 @@ package auth
 import (
 	"context"
 	"net/http"
+
+	"github.com/zbum/manty-blast-mail/internal/ctxkey"
 )
 
-type ContextKey string
-
-const UserIDKey ContextKey = "user_id"
-const UserRoleKey ContextKey = "user_role"
+// Re-export context keys for backward compatibility with existing code.
+const UserIDKey = ctxkey.UserIDKey
+const UserRoleKey = ctxkey.UserRoleKey
 
 type Middleware struct {
 	sessionStore *SessionStore
@@ -43,5 +44,17 @@ func (m *Middleware) RequireAuth(next http.Handler) http.Handler {
 			ctx = context.WithValue(ctx, UserRoleKey, role)
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (m *Middleware) RequireApproved(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		role, _ := r.Context().Value(UserRoleKey).(string)
+		if role == "pending" {
+			w.Header().Set("Content-Type", "application/json")
+			http.Error(w, `{"error":"account pending approval"}`, http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
 	})
 }

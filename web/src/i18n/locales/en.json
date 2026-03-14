@@ -41,6 +41,7 @@
     "campaigns": "Campaigns",
     "userManagement": "User Management",
     "profile": "Profile",
+    "auditLogs": "Audit Logs",
     "logout": "Logout"
   },
   "login": {
@@ -52,6 +53,8 @@
     "passwordPlaceholder": "Enter your password",
     "signingIn": "Signing in...",
     "signIn": "Sign In",
+    "ssoSignIn": "Sign in with SSO",
+    "or": "or",
     "failed": "Login failed. Please check your credentials."
   },
   "dashboard": {
@@ -265,6 +268,11 @@
     "noLogs": "No logs found.",
     "exportFailed": "Failed to export report."
   },
+  "pending": {
+    "title": "Pending Approval",
+    "message": "Please wait until an administrator approves your account. You will be able to use the service after approval.",
+    "refresh": "Refresh"
+  },
   "admin": {
     "title": "User Management",
     "users": "Users",
@@ -273,9 +281,11 @@
     "id": "ID",
     "username": "Username",
     "role": "Role",
+    "authType": "Auth Type",
     "action": "Action",
     "roleAdmin": "Admin",
     "roleUser": "User",
+    "rolePending": "Pending",
     "deleteConfirm": "Are you sure you want to delete user \"{{username}}\"?",
     "deleteFailed": "Failed to delete user.",
     "clickToToggleRole": "Click to toggle role",
@@ -340,5 +350,28 @@
     "undo": "Undo",
     "redo": "Redo",
     "linkPlaceholder": "https://example.com"
+  },
+  "audit": {
+    "title": "Audit Logs",
+    "totalLogs": "Audit Logs ({{total}})",
+    "time": "Time",
+    "actor": "Actor",
+    "action": "Action",
+    "target": "Target",
+    "detail": "Detail",
+    "actionRoleChange": "Role Change",
+    "actionMailStart": "Mail Send",
+    "actionUserCreate": "User Create",
+    "actionUserDelete": "User Delete",
+    "recipientCount": "{{count}} recipients",
+    "noLogs": "No audit logs found."
+  },
+  "search": {
+    "placeholder": "Search campaigns, recipients, logs...",
+    "noResults": "No results found.",
+    "resultCount": "{{count}} results",
+    "typeCampaign": "Campaign",
+    "typeRecipient": "Recipient",
+    "typeAudit": "Audit Log"
   }
 }

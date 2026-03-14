@@ -13,11 +13,24 @@ type Config struct {
 	Database DatabaseConfig `yaml:"database"`
 	SMTP     SMTPConfig     `yaml:"smtp"`
 	Sender   SenderConfig   `yaml:"sender"`
+	OAuth    OAuthConfig    `yaml:"oauth"`
+}
+
+type OAuthConfig struct {
+	Enabled      bool   `yaml:"enabled"`
+	ClientID     string `yaml:"client_id"`
+	ClientSecret string `yaml:"client_secret"`
+	AuthURL      string `yaml:"auth_url"`
+	TokenURL     string `yaml:"token_url"`
+	UserInfoURL  string `yaml:"userinfo_url"`
+	RedirectURL  string `yaml:"redirect_url"`
+	Scopes       []string `yaml:"scopes"`
 }
 
 type ServerConfig struct {
 	Port          int    `yaml:"port"`
 	SessionSecret string `yaml:"session_secret"`
+	EncryptionKey string `yaml:"encryption_key"`
 }
 
 type DatabaseConfig struct {
@@ -130,6 +143,15 @@ func applyEnvOverrides(cfg *Config) {
 	}
 	if v := os.Getenv("SESSION_SECRET"); v != "" {
 		cfg.Server.SessionSecret = v
+	}
+	if v := os.Getenv("OAUTH_CLIENT_ID"); v != "" {
+		cfg.OAuth.ClientID = v
+	}
+	if v := os.Getenv("OAUTH_CLIENT_SECRET"); v != "" {
+		cfg.OAuth.ClientSecret = v
+	}
+	if v := os.Getenv("ENCRYPTION_KEY"); v != "" {
+		cfg.Server.EncryptionKey = v
 	}
 	if v := os.Getenv("PORT"); v != "" {
 		if p, err := strconv.Atoi(v); err == nil {

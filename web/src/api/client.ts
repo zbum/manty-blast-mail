@@ -8,6 +8,7 @@ const api = axios.create({
 export default api;
 
 // Auth
+export const getAuthInfo = () => api.get('/auth/info');
 export const login = (username: string, password: string) =>
   api.post('/auth/login', { username, password });
 export const logout = () => api.post('/auth/logout');
@@ -65,3 +66,11 @@ export const getSendLogs = (id: number, page = 1) =>
 export const exportReport = (id: number) =>
   api.get(`/campaigns/${id}/report/export`, { responseType: 'blob' });
 export const getDashboard = () => api.get('/dashboard');
+
+// Audit logs
+export const getAuditLogs = (page = 1, pageSize = 20) =>
+  api.get(`/audit-logs?page=${page}&page_size=${pageSize}`);
+
+// Search
+export const globalSearch = (query: string) =>
+  api.get(`/search?q=${encodeURIComponent(query)}`);

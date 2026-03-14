@@ -18,7 +18,8 @@ func NewSessionStore(secret string) *SessionStore {
 		Path:     "/",
 		MaxAge:   86400,
 		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 	}
 	return &SessionStore{store: store}
 }
