@@ -11,13 +11,72 @@ import (
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 
+	"github.com/zbum/manty-blast-mail/internal/audit"
 	"github.com/zbum/manty-blast-mail/internal/auth"
 	"github.com/zbum/manty-blast-mail/internal/campaign"
 	"github.com/zbum/manty-blast-mail/internal/config"
+	"github.com/zbum/manty-blast-mail/internal/crypto"
 	"github.com/zbum/manty-blast-mail/internal/recipient"
+	"github.com/zbum/manty-blast-mail/internal/search"
 	"github.com/zbum/manty-blast-mail/internal/sender"
 	"github.com/zbum/manty-blast-mail/internal/server"
 )
+
+func migrateRecipientEncryption(db *gorm.DB) {
+	const batchSize = 500
+	var offset int
+	var migrated int
+
+	for {
+		var recipients []recipient.Recipient
+		if err := db.Order("id ASC").Offset(offset).Limit(batchSize).Find(&recipients).Error; err != nil {
+			log.Error().Err(err).Msg("failed to load recipients for encryption migration")
+			return
+		}
+		if len(recipients) == 0 {
+			break
+		}
+
+		for _, r := range recipients {
+			needsMigration := false
+			if r.Email != "" && !crypto.IsEncrypted(r.Email) {
+				needsMigration = true
+			}
+			if r.Name != "" && !crypto.IsEncrypted(r.Name) {
+				needsMigration = true
+			}
+			if !needsMigration {
+				continue
+			}
+
+			encEmail, err := crypto.Encrypt(r.Email)
+			if err != nil {
+				log.Error().Err(err).Uint64("id", r.ID).Msg("failed to encrypt email")
+				continue
+			}
+			encName, err := crypto.Encrypt(r.Name)
+			if err != nil {
+				log.Error().Err(err).Uint64("id", r.ID).Msg("failed to encrypt name")
+				continue
+			}
+
+			db.Model(&recipient.Recipient{}).Where("id = ?", r.ID).Updates(map[string]interface{}{
+				"email": encEmail,
+				"name":  encName,
+			})
+			migrated++
+		}
+
+		offset += len(recipients)
+		if len(recipients) < batchSize {
+			break
+		}
+	}
+
+	if migrated > 0 {
+		log.Info().Int("count", migrated).Msg("migrated plaintext recipients to encrypted")
+	}
+}
 
 func main() {
 	configPath := flag.String("config", "config.yaml", "path to config file")
@@ -49,10 +108,21 @@ func main() {
 		&campaign.Campaign{},
 		&recipient.Recipient{},
 		&sender.SendLogEntry{},
+		&audit.AuditLog{},
 	); err != nil {
 		log.Fatal().Err(err).Msg("failed to auto-migrate database")
 	}
 	log.Info().Msg("database migration completed")
+
+	// Initialize encryption for recipient data
+	if cfg.Server.EncryptionKey != "" {
+		if err := crypto.Init(cfg.Server.EncryptionKey); err != nil {
+			log.Fatal().Err(err).Msg("failed to initialize encryption")
+		}
+		log.Info().Msg("recipient data encryption enabled")
+	} else {
+		log.Warn().Msg("ENCRYPTION_KEY not set, recipient data will not be encrypted")
+	}
 
 	var count int64
 	db.Model(&auth.User{}).Count(&count)
@@ -68,6 +138,11 @@ func main() {
 		db.Model(&auth.User{}).Where("username = ? AND (role = '' OR role = 'user')", "admin").Update("role", "admin")
 	}
 
+	// Migrate plaintext recipient data to encrypted
+	if crypto.Enabled() {
+		migrateRecipientEncryption(db)
+	}
+
 	// Recover campaigns stuck in "sending" status from previous crash
 	var stuckCount int64
 	db.Model(&campaign.Campaign{}).Where("status = ?", "sending").Count(&stuckCount)
@@ -76,7 +151,15 @@ func main() {
 		log.Warn().Int64("count", stuckCount).Msg("recovered stuck campaigns from 'sending' to 'paused'")
 	}
 
-	srv := server.New(cfg, db)
+	// Initialize Bleve search index
+	indexer, err := search.NewIndexer("bleve.index", db)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create search index")
+	}
+	defer indexer.Close()
+	indexer.Sync()
+
+	srv := server.New(cfg, db, indexer)
 	if err := srv.Start(); err != nil {
 		log.Fatal().Err(err).Msg("server failed")
 	}

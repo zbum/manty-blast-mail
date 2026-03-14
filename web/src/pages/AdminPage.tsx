@@ -6,6 +6,7 @@ interface UserItem {
   id: number;
   username: string;
   role: string;
+  auth_type: string;
 }
 
 export default function AdminPage() {
@@ -64,7 +65,9 @@ export default function AdminPage() {
   };
 
   const handleToggleRole = async (userId: number, currentRole: string) => {
-    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    const roleOrder = ['pending', 'user', 'admin'];
+    const currentIndex = roleOrder.indexOf(currentRole);
+    const newRole = roleOrder[(currentIndex + 1) % roleOrder.length];
     try {
       await updateUserRole(userId, newRole);
       fetchUsers();
@@ -104,6 +107,7 @@ export default function AdminPage() {
                   <tr className="border-b border-slate-100">
                     <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.id')}</th>
                     <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.username')}</th>
+                    <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.authType')}</th>
                     <th className="text-left py-2 px-2 font-medium text-slate-600">{t('admin.role')}</th>
                     <th className="text-right py-2 px-2 font-medium text-slate-600">{t('admin.action')}</th>
                   </tr>
@@ -114,14 +118,23 @@ export default function AdminPage() {
                       <td className="py-2.5 px-2 text-slate-500">{u.id}</td>
                       <td className="py-2.5 px-2 text-slate-800 font-medium">{u.username}</td>
                       <td className="py-2.5 px-2">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                          u.auth_type === 'oauth' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {u.auth_type === 'oauth' ? 'SSO' : 'Local'}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-2">
                         <button
                           onClick={() => handleToggleRole(u.id, u.role)}
                           className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${
-                            u.role === 'admin' ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            u.role === 'admin' ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                              : u.role === 'pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                           }`}
                           title={t('admin.clickToToggleRole')}
                         >
-                          {u.role === 'admin' ? t('admin.roleAdmin') : t('admin.roleUser')}
+                          {u.role === 'admin' ? t('admin.roleAdmin') : u.role === 'pending' ? t('admin.rolePending') : t('admin.roleUser')}
                         </button>
                       </td>
                       <td className="py-2.5 px-2 text-right">

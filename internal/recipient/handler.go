@@ -14,6 +14,7 @@ import (
 
 	"github.com/zbum/manty-blast-mail/internal/auth"
 	"github.com/zbum/manty-blast-mail/internal/campaign"
+	"github.com/zbum/manty-blast-mail/internal/search"
 )
 
 func isValidEmail(email string) bool {
@@ -24,12 +25,14 @@ func isValidEmail(email string) bool {
 type Handler struct {
 	repo         *Repository
 	campaignRepo *campaign.Repository
+	indexer      *search.Indexer
 }
 
-func NewHandler(db *gorm.DB) *Handler {
+func NewHandler(db *gorm.DB, indexer *search.Indexer) *Handler {
 	return &Handler{
 		repo:         NewRepository(db),
 		campaignRepo: campaign.NewRepository(db),
+		indexer:      indexer,
 	}
 }
 
@@ -110,6 +113,11 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	if err := h.campaignRepo.Update(c); err != nil {
 		http.Error(w, `{"error":"failed to update campaign count"}`, http.StatusInternalServerError)
 		return
+	}
+
+	// Index uploaded recipients
+	if h.indexer != nil {
+		h.indexRecipientsFromDB(campaignID, c.UserID)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -195,6 +203,11 @@ func (h *Handler) Manual(w http.ResponseWriter, r *http.Request) {
 	if err := h.campaignRepo.Update(c); err != nil {
 		http.Error(w, `{"error":"failed to update campaign count"}`, http.StatusInternalServerError)
 		return
+	}
+
+	// Index manually added recipients
+	if h.indexer != nil {
+		h.indexRecipientsFromDB(campaignID, c.UserID)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -307,6 +320,10 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.indexer != nil {
+		h.indexer.DeleteRecipient(recipientID)
+	}
+
 	// Decrease campaign total count
 	if c.TotalCount > 0 {
 		c.TotalCount--
@@ -351,6 +368,10 @@ func (h *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.indexer != nil {
+		h.indexer.DeleteRecipientsByCampaign(campaignID)
+	}
+
 	// Reset campaign total count
 	c.TotalCount = 0
 	c.SentCount = 0
@@ -362,4 +383,28 @@ func (h *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"message":"all recipients deleted"}`))
+}
+
+// indexRecipientsFromDB re-indexes all recipients for a campaign from DB.
+// Called after batch upload/manual add since we don't have the saved IDs yet.
+func (h *Handler) indexRecipientsFromDB(campaignID, ownerID uint64) {
+	var rows []Recipient
+	h.repo.db.Where("campaign_id = ?", campaignID).Find(&rows)
+	DecryptRecipients(rows)
+
+	batch := make([]struct {
+		ID     uint64
+		Email  string
+		Name   string
+		Status string
+	}, len(rows))
+	for i, r := range rows {
+		batch[i] = struct {
+			ID     uint64
+			Email  string
+			Name   string
+			Status string
+		}{r.ID, r.Email, r.Name, r.Status}
+	}
+	h.indexer.IndexRecipientsBatch(campaignID, ownerID, batch)
 }

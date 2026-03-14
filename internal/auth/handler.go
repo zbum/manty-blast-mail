@@ -10,6 +10,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+
+	"github.com/zbum/manty-blast-mail/internal/audit"
 )
 
 type User struct {
@@ -17,11 +19,13 @@ type User struct {
 	Username string `json:"username" gorm:"uniqueIndex;size:255"`
 	Password string `json:"-" gorm:"size:255"`
 	Role     string `json:"role" gorm:"size:20;default:'user'"`
+	AuthType string `json:"auth_type" gorm:"size:20;default:'local'"`
 }
 
 type Handler struct {
 	db            *gorm.DB
 	sessionStore  *SessionStore
+	auditService  *audit.Service
 	loginAttempts map[string]*loginAttempt
 	loginMu       sync.Mutex
 }
@@ -31,8 +35,8 @@ type loginAttempt struct {
 	lastTry time.Time
 }
 
-func NewHandler(db *gorm.DB, sessionStore *SessionStore) *Handler {
-	return &Handler{db: db, sessionStore: sessionStore, loginAttempts: make(map[string]*loginAttempt)}
+func NewHandler(db *gorm.DB, sessionStore *SessionStore, auditService *audit.Service) *Handler {
+	return &Handler{db: db, sessionStore: sessionStore, auditService: auditService, loginAttempts: make(map[string]*loginAttempt)}
 }
 
 type loginRequest struct {
@@ -44,6 +48,7 @@ type meResponse struct {
 	ID       uint64 `json:"id"`
 	Username string `json:"username"`
 	Role     string `json:"role"`
+	AuthType string `json:"auth_type"`
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
@@ -110,6 +115,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		ID:       user.ID,
 		Username: user.Username,
 		Role:     user.Role,
+		AuthType: user.AuthType,
 	})
 }
 
@@ -152,7 +158,8 @@ func (h *Handler) requireAdmin(r *http.Request) (*User, error) {
 }
 
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	if _, err := h.requireAdmin(r); err != nil {
+	admin, err := h.requireAdmin(r)
+	if err != nil {
 		http.Error(w, `{"error":"admin access required"}`, http.StatusForbidden)
 		return
 	}
@@ -174,11 +181,13 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := User{Username: req.Username, Password: string(hashed), Role: "user"}
+	user := User{Username: req.Username, Password: string(hashed), Role: "user", AuthType: "local"}
 	if err := h.db.Create(&user).Error; err != nil {
 		http.Error(w, `{"error":"username already exists"}`, http.StatusConflict)
 		return
 	}
+
+	h.auditService.LogUserCreate(admin.ID, admin.Username, user.ID, user.Username)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -186,6 +195,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		ID:       user.ID,
 		Username: user.Username,
 		Role:     user.Role,
+		AuthType: user.AuthType,
 	})
 }
 
@@ -202,10 +212,11 @@ func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		ID       uint64 `json:"id"`
 		Username string `json:"username"`
 		Role     string `json:"role"`
+		AuthType string `json:"auth_type"`
 	}
 	result := make([]userItem, len(users))
 	for i, u := range users {
-		result[i] = userItem{ID: u.ID, Username: u.Username, Role: u.Role}
+		result[i] = userItem{ID: u.ID, Username: u.Username, Role: u.Role, AuthType: u.AuthType}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -231,10 +242,19 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Load user info before deleting for audit log
+	var targetUser User
+	if err := h.db.First(&targetUser, userID).Error; err != nil {
+		http.Error(w, `{"error":"user not found"}`, http.StatusNotFound)
+		return
+	}
+
 	if err := h.db.Delete(&User{}, userID).Error; err != nil {
 		http.Error(w, `{"error":"failed to delete user"}`, http.StatusInternalServerError)
 		return
 	}
+
+	h.auditService.LogUserDelete(admin.ID, admin.Username, targetUser.ID, targetUser.Username)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"message":"user deleted"}`))
@@ -269,8 +289,8 @@ func (h *Handler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Role != "admin" && req.Role != "user" {
-		http.Error(w, `{"error":"role must be 'admin' or 'user'"}`, http.StatusBadRequest)
+	if req.Role != "admin" && req.Role != "user" && req.Role != "pending" {
+		http.Error(w, `{"error":"role must be 'admin', 'user', or 'pending'"}`, http.StatusBadRequest)
 		return
 	}
 
@@ -280,16 +300,21 @@ func (h *Handler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	oldRole := user.Role
+
 	if err := h.db.Model(&user).Update("role", req.Role).Error; err != nil {
 		http.Error(w, `{"error":"failed to update role"}`, http.StatusInternalServerError)
 		return
 	}
+
+	h.auditService.LogRoleChange(admin.ID, admin.Username, user.ID, user.Username, oldRole, req.Role)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(meResponse{
 		ID:       user.ID,
 		Username: user.Username,
 		Role:     req.Role,
+		AuthType: user.AuthType,
 	})
 }
 
@@ -305,6 +330,16 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var user User
+	if err := h.db.First(&user, userID).Error; err != nil {
+		http.Error(w, `{"error":"user not found"}`, http.StatusNotFound)
+		return
+	}
+	if user.AuthType == "oauth" {
+		http.Error(w, `{"error":"password change not available for SSO users"}`, http.StatusBadRequest)
+		return
+	}
+
 	var req changePasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, `{"error":"invalid request body"}`, http.StatusBadRequest)
@@ -313,12 +348,6 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	if req.CurrentPassword == "" || req.NewPassword == "" {
 		http.Error(w, `{"error":"current_password and new_password are required"}`, http.StatusBadRequest)
-		return
-	}
-
-	var user User
-	if err := h.db.First(&user, userID).Error; err != nil {
-		http.Error(w, `{"error":"user not found"}`, http.StatusNotFound)
 		return
 	}
 
@@ -360,5 +389,6 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		ID:       user.ID,
 		Username: user.Username,
 		Role:     user.Role,
+		AuthType: user.AuthType,
 	})
 }

@@ -10,18 +10,20 @@ import (
 
 	"github.com/zbum/manty-blast-mail/internal/auth"
 	"github.com/zbum/manty-blast-mail/internal/mailer"
+	"github.com/zbum/manty-blast-mail/internal/search"
 )
 
 type Handler struct {
 	repo    *Repository
 	service *Service
 	mailer  *mailer.Mailer
+	indexer *search.Indexer
 }
 
-func NewHandler(db *gorm.DB, ml *mailer.Mailer) *Handler {
+func NewHandler(db *gorm.DB, ml *mailer.Mailer, indexer *search.Indexer) *Handler {
 	repo := NewRepository(db)
 	svc := NewService(repo)
-	return &Handler{repo: repo, service: svc, mailer: ml}
+	return &Handler{repo: repo, service: svc, mailer: ml, indexer: indexer}
 }
 
 type listResponse struct {
@@ -102,6 +104,10 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	if err := h.service.Create(&c); err != nil {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
+	}
+
+	if h.indexer != nil {
+		h.indexer.IndexCampaign(c.ID, c.UserID, c.Name, c.Subject, c.Status, c.CreatedAt)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -210,6 +216,10 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.indexer != nil {
+		h.indexer.IndexCampaign(existing.ID, existing.UserID, existing.Name, existing.Subject, existing.Status, existing.CreatedAt)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(existing)
 }
@@ -242,6 +252,11 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err := h.service.Delete(id); err != nil {
 		http.Error(w, `{"error":"failed to delete campaign"}`, http.StatusInternalServerError)
 		return
+	}
+
+	if h.indexer != nil {
+		h.indexer.DeleteCampaign(id)
+		h.indexer.DeleteRecipientsByCampaign(id)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -307,6 +322,10 @@ func (h *Handler) ResetToDraft(w http.ResponseWriter, r *http.Request) {
 	}); err != nil {
 		http.Error(w, `{"error":"failed to reset campaign"}`, http.StatusInternalServerError)
 		return
+	}
+
+	if h.indexer != nil {
+		h.indexer.IndexCampaign(c.ID, c.UserID, c.Name, c.Subject, c.Status, c.CreatedAt)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
