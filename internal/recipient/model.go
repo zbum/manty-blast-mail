@@ -11,8 +11,8 @@ import (
 type Recipient struct {
 	ID           uint64    `json:"id" gorm:"primaryKey"`
 	CampaignID   uint64    `json:"campaign_id" gorm:"index:idx_recipients_campaign_status;index:idx_recipients_campaign_email;index:idx_recipients_campaign_name"`
-	Email        string    `json:"email" gorm:"index:idx_recipients_campaign_email;type:text"`
-	Name         string    `json:"name" gorm:"index:idx_recipients_campaign_name;type:text"`
+	Email        string    `json:"email" gorm:"index:idx_recipients_campaign_email;type:varchar(512)"`
+	Name         string    `json:"name" gorm:"index:idx_recipients_campaign_name;type:varchar(512)"`
 	Variables    JSONMap   `json:"variables" gorm:"type:json"`
 	Status       string    `json:"status" gorm:"type:varchar(20);default:'pending';index:idx_recipients_campaign_status"`
 	ErrorMessage string    `json:"error_message,omitempty"`
