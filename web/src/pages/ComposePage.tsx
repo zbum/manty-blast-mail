@@ -454,6 +454,47 @@ export default function ComposePage() {
                 className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
               />
             )}
+
+            {/* Attachments (below editor) */}
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold text-slate-800 mb-3">{t('compose.attachments')}</h3>
+              <input
+                ref={attachmentFileRef}
+                type="file"
+                onChange={handleAttachmentUpload}
+                className="hidden"
+              />
+              <button
+                onClick={() => attachmentFileRef.current?.click()}
+                disabled={uploadAttachmentMutation.isPending}
+                className="w-full border-2 border-dashed border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {uploadAttachmentMutation.isPending ? t('compose.uploadingAttachment') : t('compose.addAttachment')}
+              </button>
+              {attachments && attachments.length > 0 ? (
+                <div className="mt-3 space-y-2">
+                  {attachments.map((a) => (
+                    <div key={a.id} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-700 truncate">{a.filename}</p>
+                        <p className="text-xs text-slate-400">{formatFileSize(a.size)}</p>
+                      </div>
+                      <button
+                        onClick={() => deleteAttachmentMutation.mutate(a.id)}
+                        disabled={deleteAttachmentMutation.isPending}
+                        className="text-red-400 hover:text-red-600 ml-2 cursor-pointer disabled:opacity-50"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 mt-2">{t('compose.noAttachments')}</p>
+              )}
+            </div>
           </div>
 
           {/* iCalendar Section (HTML mode only) */}
@@ -628,47 +669,6 @@ export default function ComposePage() {
             >
               {t('compose.preview')}
             </button>
-          </div>
-
-          {/* Attachments */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
-            <h3 className="text-sm font-semibold text-slate-800 mb-3">{t('compose.attachments')}</h3>
-            <input
-              ref={attachmentFileRef}
-              type="file"
-              onChange={handleAttachmentUpload}
-              className="hidden"
-            />
-            <button
-              onClick={() => attachmentFileRef.current?.click()}
-              disabled={uploadAttachmentMutation.isPending}
-              className="w-full border-2 border-dashed border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {uploadAttachmentMutation.isPending ? t('compose.uploadingAttachment') : t('compose.addAttachment')}
-            </button>
-            {attachments && attachments.length > 0 ? (
-              <div className="mt-3 space-y-2">
-                {attachments.map((a) => (
-                  <div key={a.id} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-700 truncate">{a.filename}</p>
-                      <p className="text-xs text-slate-400">{formatFileSize(a.size)}</p>
-                    </div>
-                    <button
-                      onClick={() => deleteAttachmentMutation.mutate(a.id)}
-                      disabled={deleteAttachmentMutation.isPending}
-                      className="text-red-400 hover:text-red-600 ml-2 cursor-pointer disabled:opacity-50"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-400 mt-2">{t('compose.noAttachments')}</p>
-            )}
           </div>
 
           {/* Test Send */}
