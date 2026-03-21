@@ -302,6 +302,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
   const [uploadMessageType, setUploadMessageType] = useState<'success' | 'error'>('success');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [encoding, setEncoding] = useState('');
 
   const { data: recipientData, isLoading: recipientsLoading } = useQuery<{
     data: Recipient[];
@@ -318,7 +319,7 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadRecipients(campaignId, file),
+    mutationFn: (file: File) => uploadRecipients(campaignId, file, encoding || undefined),
     onSuccess: () => {
       setUploadMessageType('success');
       setUploadMessage(t('campaignDetail.uploadSuccess'));
@@ -469,6 +470,25 @@ function RecipientsTab({ campaignId }: { campaignId: number }) {
             </svg>
             <p className="text-sm text-slate-600 font-medium">{t('campaignDetail.clickToUpload')}</p>
             <p className="text-xs text-slate-400 mt-1">{t('campaignDetail.orDragDrop')}</p>
+          </div>
+          <div className="mt-3">
+            <label className="block text-xs font-medium text-slate-500 mb-1">
+              {t('campaignDetail.csvEncoding')}
+            </label>
+            <select
+              value={encoding}
+              onChange={(e) => setEncoding(e.target.value)}
+              className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">{t('campaignDetail.autoDetect')}</option>
+              <option value="utf-8">UTF-8</option>
+              <option value="euc-kr">EUC-KR (Korean)</option>
+              <option value="shift_jis">Shift_JIS (Japanese)</option>
+              <option value="windows-1252">Windows-1252 (Western)</option>
+              <option value="iso-8859-1">ISO-8859-1 (Latin)</option>
+              <option value="big5">Big5 (Traditional Chinese)</option>
+              <option value="gbk">GBK (Simplified Chinese)</option>
+            </select>
           </div>
           {uploadMutation.isPending && (
             <p className="text-sm text-blue-600 mt-3">{t('campaignDetail.uploading')}</p>

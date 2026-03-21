@@ -1,8 +1,10 @@
 package recipient
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/mail"
 	"path/filepath"
@@ -80,7 +82,18 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	var recipients []Recipient
 	switch ext {
 	case ".csv":
-		recipients, err = ParseCSV(file)
+		rawData, readErr := io.ReadAll(file)
+		if readErr != nil {
+			http.Error(w, `{"error":"failed to read file"}`, http.StatusBadRequest)
+			return
+		}
+		manualEncoding := r.URL.Query().Get("encoding")
+		utf8Data, encErr := DetectAndConvert(rawData, manualEncoding)
+		if encErr != nil {
+			http.Error(w, fmt.Sprintf(`{"error":"encoding error: %s"}`, encErr.Error()), http.StatusBadRequest)
+			return
+		}
+		recipients, err = ParseCSV(bytes.NewReader(utf8Data))
 	case ".xlsx", ".xls":
 		recipients, err = ParseExcel(file)
 	default:

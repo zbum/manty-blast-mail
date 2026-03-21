@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef, useMemo, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { getCampaign, updateCampaign, previewCampaign, previewSend } from '../api/client';
-import EmailEditor from '../components/EmailEditor';
+import { getCampaign, updateCampaign, previewCampaign, previewSend, getAttachments, uploadAttachment, deleteAttachment } from '../api/client';
 
 type Mode = 'html' | 'mime';
 type IcsMode = 'builder' | 'raw';
@@ -189,6 +188,8 @@ export default function ComposePage() {
   const [testVars, setTestVars] = useState<{ key: string; value: string }[]>([]);
   const [testSending, setTestSending] = useState(false);
 
+  const attachmentFileRef = useRef<HTMLInputElement>(null);
+
   const { data: campaign, isLoading } = useQuery<Campaign>({
     queryKey: ['campaign', campaignId],
     queryFn: async () => {
@@ -196,6 +197,54 @@ export default function ComposePage() {
       return res.data;
     },
   });
+
+  const { data: attachments } = useQuery<Array<{id: number; filename: string; content_type: string; size: number; created_at: string}>>({
+    queryKey: ['attachments', campaignId],
+    queryFn: async () => {
+      const res = await getAttachments(campaignId);
+      return res.data;
+    },
+  });
+
+  const uploadAttachmentMutation = useMutation({
+    mutationFn: (file: File) => uploadAttachment(campaignId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attachments', campaignId] });
+      setMessageType('success');
+      setMessage(t('compose.attachmentUploaded'));
+    },
+    onError: (err: any) => {
+      setMessageType('error');
+      setMessage(err.response?.data?.error || t('compose.attachmentUploadFailed'));
+    },
+  });
+
+  const deleteAttachmentMutation = useMutation({
+    mutationFn: (attachmentId: number) => deleteAttachment(campaignId, attachmentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attachments', campaignId] });
+      setMessageType('success');
+      setMessage(t('compose.attachmentDeleted'));
+    },
+    onError: (err: any) => {
+      setMessageType('error');
+      setMessage(err.response?.data?.error || t('compose.attachmentDeleteFailed'));
+    },
+  });
+
+  const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadAttachmentMutation.mutate(file);
+      e.target.value = '';
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
 
   useEffect(() => {
     if (campaign) {
@@ -391,9 +440,11 @@ export default function ComposePage() {
             </div>
 
             {mode === 'html' ? (
-              <EmailEditor
-                content={htmlContent}
-                onContentChange={(html) => { setHtmlContent(html); setDirty(true); }}
+              <textarea
+                value={htmlContent}
+                onChange={(e) => { setHtmlContent(e.target.value); setDirty(true); }}
+                placeholder={t('compose.htmlPlaceholder')}
+                className="w-full h-96 px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
               />
             ) : (
               <textarea
@@ -577,6 +628,47 @@ export default function ComposePage() {
             >
               {t('compose.preview')}
             </button>
+          </div>
+
+          {/* Attachments */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+            <h3 className="text-sm font-semibold text-slate-800 mb-3">{t('compose.attachments')}</h3>
+            <input
+              ref={attachmentFileRef}
+              type="file"
+              onChange={handleAttachmentUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => attachmentFileRef.current?.click()}
+              disabled={uploadAttachmentMutation.isPending}
+              className="w-full border-2 border-dashed border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {uploadAttachmentMutation.isPending ? t('compose.uploadingAttachment') : t('compose.addAttachment')}
+            </button>
+            {attachments && attachments.length > 0 ? (
+              <div className="mt-3 space-y-2">
+                {attachments.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-slate-700 truncate">{a.filename}</p>
+                      <p className="text-xs text-slate-400">{formatFileSize(a.size)}</p>
+                    </div>
+                    <button
+                      onClick={() => deleteAttachmentMutation.mutate(a.id)}
+                      disabled={deleteAttachmentMutation.isPending}
+                      className="text-red-400 hover:text-red-600 ml-2 cursor-pointer disabled:opacity-50"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 mt-2">{t('compose.noAttachments')}</p>
+            )}
           </div>
 
           {/* Test Send */}

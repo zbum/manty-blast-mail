@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -14,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
+	"github.com/zbum/manty-blast-mail/internal/attachment"
 	"github.com/zbum/manty-blast-mail/internal/audit"
 	"github.com/zbum/manty-blast-mail/internal/auth"
 	"github.com/zbum/manty-blast-mail/internal/campaign"
@@ -193,6 +195,23 @@ func (s *Service) runCampaign(ctx context.Context, campaignID uint64, runner *Ca
 
 	jobs := make(chan SendJob, s.cfg.WorkerCount*2)
 
+	// Load file attachments
+	attachmentRepo := attachment.NewRepository(s.db)
+	atts, _ := attachmentRepo.FindByCampaignID(campaignID)
+	var attachmentData []mailer.AttachmentData
+	for _, a := range atts {
+		data, err := os.ReadFile(a.StoragePath)
+		if err != nil {
+			log.Error().Err(err).Str("path", a.StoragePath).Msg("failed to read attachment file")
+			continue
+		}
+		attachmentData = append(attachmentData, mailer.AttachmentData{
+			Filename:    a.Filename,
+			ContentType: a.ContentType,
+			Data:        data,
+		})
+	}
+
 	campaignData := CampaignData{
 		FromEmail:   c.FromEmail,
 		FromName:    c.FromName,
@@ -202,6 +221,7 @@ func (s *Service) runCampaign(ctx context.Context, campaignID uint64, runner *Ca
 		BodyRawMIME: c.BodyRawMIME,
 		IcsEnabled:  c.IcsEnabled,
 		IcsContent:  c.IcsContent,
+		Attachments: attachmentData,
 		TotalCount:  c.TotalCount,
 	}
 
