@@ -8,12 +8,19 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type LimitsConfig struct {
+	MaxHTMLSize       int64 `yaml:"max_html_size"`
+	MaxAttachmentSize int64 `yaml:"max_attachment_size"`
+	MaxMIMESize       int64 `yaml:"max_mime_size"`
+}
+
 type Config struct {
 	Server   ServerConfig   `yaml:"server"`
 	Database DatabaseConfig `yaml:"database"`
 	SMTP     SMTPConfig     `yaml:"smtp"`
 	Sender   SenderConfig   `yaml:"sender"`
 	OAuth    OAuthConfig    `yaml:"oauth"`
+	Limits   LimitsConfig   `yaml:"limits"`
 }
 
 type OAuthConfig struct {
@@ -102,6 +109,15 @@ func Load(path string) (*Config, error) {
 	if cfg.Sender.BatchSize == 0 {
 		cfg.Sender.BatchSize = 100
 	}
+	if cfg.Limits.MaxHTMLSize == 0 {
+		cfg.Limits.MaxHTMLSize = 1 << 20 // 1MB
+	}
+	if cfg.Limits.MaxAttachmentSize == 0 {
+		cfg.Limits.MaxAttachmentSize = 5 << 20 // 5MB
+	}
+	if cfg.Limits.MaxMIMESize == 0 {
+		cfg.Limits.MaxMIMESize = 20 << 20 // 20MB
+	}
 
 	return cfg, nil
 }
@@ -156,6 +172,21 @@ func applyEnvOverrides(cfg *Config) {
 	if v := os.Getenv("PORT"); v != "" {
 		if p, err := strconv.Atoi(v); err == nil {
 			cfg.Server.Port = p
+		}
+	}
+	if v := os.Getenv("MAX_HTML_SIZE"); v != "" {
+		if p, err := strconv.ParseInt(v, 10, 64); err == nil {
+			cfg.Limits.MaxHTMLSize = p
+		}
+	}
+	if v := os.Getenv("MAX_ATTACHMENT_SIZE"); v != "" {
+		if p, err := strconv.ParseInt(v, 10, 64); err == nil {
+			cfg.Limits.MaxAttachmentSize = p
+		}
+	}
+	if v := os.Getenv("MAX_MIME_SIZE"); v != "" {
+		if p, err := strconv.ParseInt(v, 10, 64); err == nil {
+			cfg.Limits.MaxMIMESize = p
 		}
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 
+	"github.com/zbum/manty-blast-mail/internal/attachment"
 	"github.com/zbum/manty-blast-mail/internal/audit"
 	"github.com/zbum/manty-blast-mail/internal/auth"
 	"github.com/zbum/manty-blast-mail/internal/campaign"
@@ -109,6 +110,7 @@ func main() {
 		&recipient.Recipient{},
 		&sender.SendLogEntry{},
 		&audit.AuditLog{},
+		&attachment.Attachment{},
 	); err != nil {
 		log.Fatal().Err(err).Msg("failed to auto-migrate database")
 	}

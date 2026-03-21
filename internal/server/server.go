@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	mailsender "github.com/zbum/manty-blast-mail"
+	"github.com/zbum/manty-blast-mail/internal/attachment"
 	"github.com/zbum/manty-blast-mail/internal/audit"
 	"github.com/zbum/manty-blast-mail/internal/auth"
 	"github.com/zbum/manty-blast-mail/internal/campaign"
@@ -59,7 +60,8 @@ func (s *Server) setupRoutes() {
 	ml := mailer.New(s.cfg.SMTP)
 	sendService := sender.NewService(s.db, ml, hub, s.cfg.Sender, auditService)
 
-	campaignHandler := campaign.NewHandler(s.db, ml, s.indexer)
+	campaignHandler := campaign.NewHandler(s.db, ml, s.indexer, s.cfg.Limits)
+	attachmentHandler := attachment.NewHandler(s.db, s.cfg.Limits, "./data/attachments")
 	recipientHandler := recipient.NewHandler(s.db, s.indexer)
 	reportHandler := report.NewHandler(s.db)
 	searchHandler := search.NewHandler(s.indexer)
@@ -112,6 +114,11 @@ func (s *Server) setupRoutes() {
 			r.Get("/campaigns/{id}/recipients", recipientHandler.List)
 			r.Delete("/campaigns/{id}/recipients", recipientHandler.DeleteAll)
 			r.Delete("/campaigns/{id}/recipients/{recipientId}", recipientHandler.Delete)
+
+			// Attachments
+			r.Post("/campaigns/{id}/attachments", attachmentHandler.Upload)
+			r.Get("/campaigns/{id}/attachments", attachmentHandler.List)
+			r.Delete("/campaigns/{id}/attachments/{attachmentId}", attachmentHandler.Delete)
 
 			// Preview
 			r.Post("/campaigns/{id}/preview", campaignHandler.Preview)

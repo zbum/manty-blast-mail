@@ -23,6 +23,7 @@ type SendJob struct {
 	BodyRawMIME string
 	IcsEnabled  bool
 	IcsContent  string
+	Attachments []mailer.AttachmentData
 }
 
 // Worker processes send jobs from a channel.
@@ -136,6 +137,7 @@ func (w *Worker) processJob(ctx context.Context, job SendJob) {
 			job.Recipient.Email, job.Recipient.Name,
 			renderedSubject, htmlBody, textBody,
 			icsContent,
+			job.Attachments,
 		)
 	}
 
@@ -185,6 +187,7 @@ type CampaignData struct {
 	BodyRawMIME string
 	IcsEnabled  bool
 	IcsContent  string
+	Attachments []mailer.AttachmentData
 	TotalCount  int
 }
 
@@ -233,6 +236,7 @@ func (d *Dispatcher) Run(ctx context.Context) {
 				BodyRawMIME: d.campaign.BodyRawMIME,
 				IcsEnabled:  d.campaign.IcsEnabled,
 				IcsContent:  d.campaign.IcsContent,
+				Attachments: d.campaign.Attachments,
 			}
 
 			select {

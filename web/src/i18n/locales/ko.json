@@ -145,7 +145,9 @@
     "clearAll": "전체 삭제",
     "loadingRecipients": "수신자 로딩 중...",
     "deleteRecipient": "수신자 삭제",
-    "noRecipients": "아직 추가된 수신자가 없습니다."
+    "noRecipients": "아직 추가된 수신자가 없습니다.",
+    "csvEncoding": "CSV 인코딩",
+    "autoDetect": "자동 감지"
   },
   "newCampaign": {
     "backToCampaigns": "캠페인 목록으로",
@@ -177,6 +179,7 @@
     "rawMime": "Raw MIME",
     "templateVariables": "템플릿 변수",
     "rawMimePlaceholder": "Raw MIME 콘텐츠를 입력하세요...",
+    "htmlPlaceholder": "HTML 이메일 콘텐츠를 입력하세요...",
     "includeIcs": "iCalendar (.ics) 첨부파일 포함",
     "icsBuilder": "빌더",
     "icsRaw": "Raw",
@@ -213,7 +216,15 @@
     "subjectLabel": "제목",
     "fromLabel": "발신자",
     "statusLabel": "상태",
-    "emailPreview": "이메일 미리보기"
+    "emailPreview": "이메일 미리보기",
+    "attachments": "첨부파일",
+    "addAttachment": "+ 첨부파일 추가",
+    "uploadingAttachment": "업로드 중...",
+    "attachmentUploaded": "첨부파일이 업로드되었습니다.",
+    "attachmentDeleted": "첨부파일이 삭제되었습니다.",
+    "attachmentUploadFailed": "첨부파일 업로드에 실패했습니다.",
+    "attachmentDeleteFailed": "첨부파일 삭제에 실패했습니다.",
+    "noAttachments": "첨부파일 없음"
   },
   "sending": {
     "backToCampaign": "캠페인으로 돌아가기",

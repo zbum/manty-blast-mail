@@ -46,6 +46,13 @@ func formatEncodedAddress(email, name string) string {
 	return fmt.Sprintf("%s <%s>", encodeHeader(name), email)
 }
 
+// AttachmentData holds file attachment data for MIME construction.
+type AttachmentData struct {
+	Filename    string
+	ContentType string
+	Data        []byte
+}
+
 // BuildHTMLMessage builds a MIME message matching standard calendar invitation format:
 //
 //	multipart/mixed
@@ -53,14 +60,15 @@ func formatEncodedAddress(email, name string) string {
 //	│   ├── text/html         (base64)
 //	│   └── text/calendar     (quoted-printable, inline for email client calendar UI)
 //	└── application/ics       (base64, attachment for .ics file download)
-func BuildHTMLMessage(from, fromName, to, toName, subject, htmlBody, textBody string, icsContent string) ([]byte, error) {
+//	└── file attachments      (base64)
+func BuildHTMLMessage(from, fromName, to, toName, subject, htmlBody, textBody string, icsContent string, attachments []AttachmentData) ([]byte, error) {
 	var buf bytes.Buffer
 
 	fromAddr := formatEncodedAddress(from, fromName)
 	toAddr := formatEncodedAddress(to, toName)
 	encodedSubject := encodeHeader(subject)
 
-	if icsContent == "" {
+	if icsContent == "" && len(attachments) == 0 {
 		altWriter := multipart.NewWriter(&buf)
 
 		buf.Reset()
@@ -88,7 +96,7 @@ func BuildHTMLMessage(from, fromName, to, toName, subject, htmlBody, textBody st
 		fmt.Fprintf(&buf, "Content-Type: multipart/mixed;\r\n\tboundary=\"%s\"\r\n", mixedWriter.Boundary())
 		fmt.Fprintf(&buf, "\r\n")
 
-		// Build multipart/alternative (html + inline calendar)
+		// Build multipart/alternative (html + optional inline calendar)
 		var altBuf bytes.Buffer
 		altWriter := multipart.NewWriter(&altBuf)
 
@@ -97,17 +105,19 @@ func BuildHTMLMessage(from, fromName, to, toName, subject, htmlBody, textBody st
 		}
 
 		// Inline text/calendar (quoted-printable, like Dooray/Gmail)
-		icsInlineHeader := make(textproto.MIMEHeader)
-		icsInlineHeader.Set("Content-Type", "text/calendar; method=REQUEST; charset=UTF-8; component=VEVENT")
-		icsInlineHeader.Set("Content-Transfer-Encoding", "quoted-printable")
-		icsPart, err := altWriter.CreatePart(icsInlineHeader)
-		if err != nil {
-			return nil, fmt.Errorf("create inline calendar part: %w", err)
-		}
-		var icsQP bytes.Buffer
-		writeQP(&icsQP, []byte(icsContent))
-		if _, err := icsPart.Write(icsQP.Bytes()); err != nil {
-			return nil, fmt.Errorf("write inline calendar part: %w", err)
+		if icsContent != "" {
+			icsInlineHeader := make(textproto.MIMEHeader)
+			icsInlineHeader.Set("Content-Type", "text/calendar; method=REQUEST; charset=UTF-8; component=VEVENT")
+			icsInlineHeader.Set("Content-Transfer-Encoding", "quoted-printable")
+			icsPart, err := altWriter.CreatePart(icsInlineHeader)
+			if err != nil {
+				return nil, fmt.Errorf("create inline calendar part: %w", err)
+			}
+			var icsQP bytes.Buffer
+			writeQP(&icsQP, []byte(icsContent))
+			if _, err := icsPart.Write(icsQP.Bytes()); err != nil {
+				return nil, fmt.Errorf("write inline calendar part: %w", err)
+			}
 		}
 
 		if err := altWriter.Close(); err != nil {
@@ -126,18 +136,37 @@ func BuildHTMLMessage(from, fromName, to, toName, subject, htmlBody, textBody st
 		}
 
 		// .ics file attachment (base64)
-		icsAttachHeader := make(textproto.MIMEHeader)
-		icsAttachHeader.Set("Content-Type", "application/ics; name=meeting.ics")
-		icsAttachHeader.Set("Content-Transfer-Encoding", "base64")
-		icsAttachHeader.Set("Content-Disposition", "attachment; filename=meeting.ics")
-		attachPart, err := mixedWriter.CreatePart(icsAttachHeader)
-		if err != nil {
-			return nil, fmt.Errorf("create ics attachment: %w", err)
+		if icsContent != "" {
+			icsAttachHeader := make(textproto.MIMEHeader)
+			icsAttachHeader.Set("Content-Type", "application/ics; name=meeting.ics")
+			icsAttachHeader.Set("Content-Transfer-Encoding", "base64")
+			icsAttachHeader.Set("Content-Disposition", "attachment; filename=meeting.ics")
+			attachPart, err := mixedWriter.CreatePart(icsAttachHeader)
+			if err != nil {
+				return nil, fmt.Errorf("create ics attachment: %w", err)
+			}
+			var attachB64 bytes.Buffer
+			writeBase64Lines(&attachB64, []byte(icsContent))
+			if _, err := attachPart.Write(attachB64.Bytes()); err != nil {
+				return nil, fmt.Errorf("write ics attachment: %w", err)
+			}
 		}
-		var attachB64 bytes.Buffer
-		writeBase64Lines(&attachB64, []byte(icsContent))
-		if _, err := attachPart.Write(attachB64.Bytes()); err != nil {
-			return nil, fmt.Errorf("write ics attachment: %w", err)
+
+		// File attachments
+		for _, att := range attachments {
+			attHeader := make(textproto.MIMEHeader)
+			attHeader.Set("Content-Type", fmt.Sprintf("%s; name=\"%s\"", att.ContentType, att.Filename))
+			attHeader.Set("Content-Transfer-Encoding", "base64")
+			attHeader.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", att.Filename))
+			attPart, err := mixedWriter.CreatePart(attHeader)
+			if err != nil {
+				return nil, fmt.Errorf("create attachment part: %w", err)
+			}
+			var attB64 bytes.Buffer
+			writeBase64Lines(&attB64, att.Data)
+			if _, err := attPart.Write(attB64.Bytes()); err != nil {
+				return nil, fmt.Errorf("write attachment part: %w", err)
+			}
 		}
 
 		if err := mixedWriter.Close(); err != nil {

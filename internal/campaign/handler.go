@@ -2,13 +2,16 @@ package campaign
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 
 	"github.com/zbum/manty-blast-mail/internal/auth"
+	"github.com/zbum/manty-blast-mail/internal/config"
 	"github.com/zbum/manty-blast-mail/internal/mailer"
 	"github.com/zbum/manty-blast-mail/internal/search"
 )
@@ -18,13 +21,28 @@ type Handler struct {
 	service *Service
 	mailer  *mailer.Mailer
 	indexer *search.Indexer
+	limits  config.LimitsConfig
+	db      *gorm.DB
 }
 
-func NewHandler(db *gorm.DB, ml *mailer.Mailer, indexer *search.Indexer) *Handler {
+func NewHandler(db *gorm.DB, ml *mailer.Mailer, indexer *search.Indexer, limits config.LimitsConfig) *Handler {
 	repo := NewRepository(db)
 	svc := NewService(repo)
-	return &Handler{repo: repo, service: svc, mailer: ml, indexer: indexer}
+	return &Handler{repo: repo, service: svc, mailer: ml, indexer: indexer, limits: limits, db: db}
 }
+
+// campaignAttachment mirrors the attachments table for direct GORM queries,
+// avoiding import cycles with the attachment package.
+type campaignAttachment struct {
+	ID          uint64 `gorm:"primaryKey"`
+	CampaignID  uint64
+	Filename    string
+	ContentType string
+	Size        int64
+	StoragePath string
+}
+
+func (campaignAttachment) TableName() string { return "attachments" }
 
 type listResponse struct {
 	Data       []CampaignListItem `json:"data"`
@@ -181,6 +199,11 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if updates.BodyHTML != "" && int64(len(updates.BodyHTML)) > h.limits.MaxHTMLSize {
+		writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("HTML content exceeds maximum size of %d bytes", h.limits.MaxHTMLSize))
+		return
+	}
+
 	// Apply allowed field updates (status is NOT updatable here)
 	if updates.Name != "" {
 		existing.Name = updates.Name
@@ -248,6 +271,14 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
 		return
 	}
+
+	// Delete attachments from disk and DB
+	var atts []campaignAttachment
+	h.db.Where("campaign_id = ?", id).Find(&atts)
+	for _, a := range atts {
+		os.Remove(a.StoragePath)
+	}
+	h.db.Where("campaign_id = ?", id).Delete(&campaignAttachment{})
 
 	if err := h.service.Delete(id); err != nil {
 		http.Error(w, `{"error":"failed to delete campaign"}`, http.StatusInternalServerError)
@@ -455,7 +486,23 @@ func (h *Handler) PreviewSend(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		msg, err = mailer.BuildHTMLMessage(c.FromEmail, c.FromName, req.Email, "", c.Subject, htmlBody, textBody, icsContent)
+		// Load attachments
+		var atts []campaignAttachment
+		h.db.Where("campaign_id = ?", id).Find(&atts)
+		var attachmentData []mailer.AttachmentData
+		for _, a := range atts {
+			data, err := os.ReadFile(a.StoragePath)
+			if err != nil {
+				continue
+			}
+			attachmentData = append(attachmentData, mailer.AttachmentData{
+				Filename:    a.Filename,
+				ContentType: a.ContentType,
+				Data:        data,
+			})
+		}
+
+		msg, err = mailer.BuildHTMLMessage(c.FromEmail, c.FromName, req.Email, "", c.Subject, htmlBody, textBody, icsContent, attachmentData)
 	}
 
 	if err != nil {

@@ -30,10 +30,11 @@ export const updateCampaign = (id: number, data: any) => api.put(`/campaigns/${i
 export const deleteCampaign = (id: number) => api.delete(`/campaigns/${id}`);
 
 // Recipients
-export const uploadRecipients = (id: number, file: File) => {
+export const uploadRecipients = (id: number, file: File, encoding?: string) => {
   const formData = new FormData();
   formData.append('file', file);
-  return api.post(`/campaigns/${id}/recipients/upload`, formData);
+  const params = encoding ? `?encoding=${encodeURIComponent(encoding)}` : '';
+  return api.post(`/campaigns/${id}/recipients/upload${params}`, formData);
 };
 export const addRecipientsManual = (id: number, recipients: any[]) =>
   api.post(`/campaigns/${id}/recipients/manual`, { recipients });
@@ -74,3 +75,14 @@ export const getAuditLogs = (page = 1, pageSize = 20) =>
 // Search
 export const globalSearch = (query: string) =>
   api.get(`/search?q=${encodeURIComponent(query)}`);
+
+// Attachments
+export const uploadAttachment = (campaignId: number, file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/campaigns/${campaignId}/attachments`, formData);
+};
+export const getAttachments = (campaignId: number) =>
+  api.get(`/campaigns/${campaignId}/attachments`);
+export const deleteAttachment = (campaignId: number, attachmentId: number) =>
+  api.delete(`/campaigns/${campaignId}/attachments/${attachmentId}`);
