@@ -152,6 +152,7 @@ function StatusBadge({ status }: { status: string }) {
     paused: 'bg-orange-100 text-orange-700',
     completed: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
+    scheduled: 'bg-indigo-100 text-indigo-700',
   };
 
   return (

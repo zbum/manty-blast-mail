@@ -1,6 +1,10 @@
 package campaign
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Repository struct {
 	db *gorm.DB
@@ -20,7 +24,7 @@ func (r *Repository) FindAll(page, pageSize int) ([]CampaignListItem, int64, err
 
 	offset := (page - 1) * pageSize
 	if err := r.db.Table("campaigns").
-		Select("campaigns.id, campaigns.user_id, users.username, campaigns.name, campaigns.subject, campaigns.status, campaigns.total_count, campaigns.sent_count, campaigns.failed_count, campaigns.created_at").
+		Select("campaigns.id, campaigns.user_id, users.username, campaigns.name, campaigns.subject, campaigns.status, campaigns.total_count, campaigns.sent_count, campaigns.failed_count, campaigns.scheduled_at, campaigns.created_at").
 		Joins("LEFT JOIN users ON users.id = campaigns.user_id").
 		Order("campaigns.created_at DESC").Offset(offset).Limit(pageSize).
 		Scan(&campaigns).Error; err != nil {
@@ -40,7 +44,7 @@ func (r *Repository) FindAllByUserID(userID uint64, page, pageSize int) ([]Campa
 
 	offset := (page - 1) * pageSize
 	if err := r.db.Table("campaigns").
-		Select("campaigns.id, campaigns.user_id, users.username, campaigns.name, campaigns.subject, campaigns.status, campaigns.total_count, campaigns.sent_count, campaigns.failed_count, campaigns.created_at").
+		Select("campaigns.id, campaigns.user_id, users.username, campaigns.name, campaigns.subject, campaigns.status, campaigns.total_count, campaigns.sent_count, campaigns.failed_count, campaigns.scheduled_at, campaigns.created_at").
 		Joins("LEFT JOIN users ON users.id = campaigns.user_id").
 		Where("campaigns.user_id = ?", userID).
 		Order("campaigns.created_at DESC").Offset(offset).Limit(pageSize).
@@ -69,4 +73,10 @@ func (r *Repository) Update(c *Campaign) error {
 
 func (r *Repository) Delete(id uint64) error {
 	return r.db.Delete(&Campaign{}, id).Error
+}
+
+func (r *Repository) FindScheduledDue(now time.Time) ([]Campaign, error) {
+	var campaigns []Campaign
+	err := r.db.Where("status = ? AND scheduled_at <= ?", "scheduled", now).Find(&campaigns).Error
+	return campaigns, err
 }

@@ -58,6 +58,10 @@ export const startSend = (id: number) => api.post(`/campaigns/${id}/send/start`)
 export const pauseSend = (id: number) => api.post(`/campaigns/${id}/send/pause`);
 export const resumeSend = (id: number) => api.post(`/campaigns/${id}/send/resume`);
 export const cancelSend = (id: number) => api.post(`/campaigns/${id}/send/cancel`);
+export const scheduleSend = (id: number, scheduledAt: string) =>
+  api.post(`/campaigns/${id}/send/schedule`, { scheduled_at: scheduledAt });
+export const cancelSchedule = (id: number) =>
+  api.post(`/campaigns/${id}/send/cancel-schedule`);
 export const setRate = (id: number, rate: number) =>
   api.put(`/campaigns/${id}/send/rate`, { rate });
 

@@ -59,6 +59,7 @@ func (s *Server) setupRoutes() {
 
 	ml := mailer.New(s.cfg.SMTP)
 	sendService := sender.NewService(s.db, ml, hub, s.cfg.Sender, auditService)
+	sendService.StartScheduler()
 
 	campaignHandler := campaign.NewHandler(s.db, ml, s.indexer, s.cfg.Limits)
 	attachmentHandler := attachment.NewHandler(s.db, s.cfg.Limits, "./data/attachments")
@@ -131,6 +132,8 @@ func (s *Server) setupRoutes() {
 			r.Post("/campaigns/{id}/send/resume", sendService.HandleResume)
 			r.Post("/campaigns/{id}/send/cancel", sendService.HandleCancel)
 			r.Put("/campaigns/{id}/send/rate", sendService.HandleSetRate)
+			r.Post("/campaigns/{id}/send/schedule", sendService.HandleSchedule)
+			r.Post("/campaigns/{id}/send/cancel-schedule", sendService.HandleCancelSchedule)
 
 			// Reports
 			r.Get("/campaigns/{id}/logs", reportHandler.Logs)

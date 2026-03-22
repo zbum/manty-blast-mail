@@ -30,7 +30,8 @@
     "pending": "대기",
     "sent": "발송됨",
     "failed": "실패",
-    "skipped": "건너뜀"
+    "skipped": "건너뜀",
+    "scheduled": "예약됨"
   },
   "app": {
     "title": "Manty Blast Mail",
@@ -256,7 +257,13 @@
     "status": "상태",
     "error": "오류",
     "time": "시간",
-    "noResults": "아직 결과가 없습니다. 발송을 시작하면 실시간 결과를 볼 수 있습니다."
+    "noResults": "아직 결과가 없습니다. 발송을 시작하면 실시간 결과를 볼 수 있습니다.",
+    "schedule": "예약",
+    "scheduling": "예약 중...",
+    "scheduledFor": "발송 예약: {{time}}",
+    "cancelSchedule": "예약 취소",
+    "cancellingSchedule": "취소 중...",
+    "cancelScheduleConfirm": "예약된 발송을 취소하시겠습니까?"
   },
   "report": {
     "backToCampaign": "캠페인으로 돌아가기",

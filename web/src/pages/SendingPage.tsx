@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { getCampaign, startSend, pauseSend, resumeSend, cancelSend, setRate } from '../api/client';
+import { getCampaign, startSend, pauseSend, resumeSend, cancelSend, setRate, scheduleSend, cancelSchedule } from '../api/client';
 import { useWebSocket } from '../hooks/useWebSocket';
 
 interface Campaign {
@@ -13,6 +13,7 @@ interface Campaign {
   sent_count: number;
   failed_count: number;
   rate_limit: number;
+  scheduled_at?: string;
 }
 
 interface SendResult {
@@ -39,6 +40,7 @@ export default function SendingPage() {
   const [results, setResults] = useState<SendResult[]>([]);
   const [actionLoading, setActionLoading] = useState('');
   const [error, setError] = useState('');
+  const [scheduleDate, setScheduleDate] = useState('');
   const resultsEndRef = useRef<HTMLDivElement>(null);
 
   const { data: campaign, isLoading } = useQuery<Campaign>({
@@ -156,6 +158,7 @@ export default function SendingPage() {
   const isCompleted = status === 'completed';
   const isCancelled = status === 'cancelled';
   const isDraft = status === 'draft' || status === 'ready';
+  const isScheduled = status === 'scheduled';
 
   return (
     <div>
@@ -227,13 +230,55 @@ export default function SendingPage() {
           <h3 className="text-sm font-semibold text-slate-800 mb-4">{t('sending.controls')}</h3>
           <div className="flex flex-wrap gap-3">
             {isDraft && (
-              <button
-                onClick={() => handleAction('start', () => startSend(campaignId))}
-                disabled={!!actionLoading}
-                className="bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
-              >
-                {actionLoading === 'start' ? t('sending.starting') : t('sending.startSending')}
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleAction('start', () => startSend(campaignId))}
+                  disabled={!!actionLoading}
+                  className="bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                >
+                  {actionLoading === 'start' ? t('sending.starting') : t('sending.startSending')}
+                </button>
+                <div className="border-t border-slate-200 pt-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="datetime-local"
+                      value={scheduleDate}
+                      onChange={(e) => setScheduleDate(e.target.value)}
+                      min={new Date().toISOString().slice(0, 16)}
+                      className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <button
+                      onClick={() => {
+                        if (!scheduleDate) return;
+                        const isoDate = new Date(scheduleDate).toISOString();
+                        handleAction('schedule', () => scheduleSend(campaignId, isoDate));
+                      }}
+                      disabled={!!actionLoading || !scheduleDate}
+                      className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap"
+                    >
+                      {actionLoading === 'schedule' ? t('sending.scheduling') : t('sending.schedule')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {isScheduled && (
+              <div className="space-y-3">
+                <div className="text-sm text-indigo-700 bg-indigo-50 px-4 py-3 rounded-lg">
+                  {t('sending.scheduledFor', { time: campaign.scheduled_at ? new Date(campaign.scheduled_at).toLocaleString() : '' })}
+                </div>
+                <button
+                  onClick={() => {
+                    if (confirm(t('sending.cancelScheduleConfirm'))) {
+                      handleAction('cancelSchedule', () => cancelSchedule(campaignId));
+                    }
+                  }}
+                  disabled={!!actionLoading}
+                  className="bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                >
+                  {actionLoading === 'cancelSchedule' ? t('sending.cancellingSchedule') : t('sending.cancelSchedule')}
+                </button>
+              </div>
             )}
             {isSending && (
               <button
@@ -376,6 +421,7 @@ function StatusIndicator({ status }: { status: string }) {
     paused: { color: 'bg-amber-500', label: t('status.paused'), pulse: false },
     completed: { color: 'bg-green-600', label: t('status.completed'), pulse: false },
     cancelled: { color: 'bg-red-500', label: t('status.cancelled'), pulse: false },
+    scheduled: { color: 'bg-indigo-500', label: t('status.scheduled'), pulse: true },
   };
 
   const c = config[status] ?? config.draft;

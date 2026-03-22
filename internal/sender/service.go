@@ -46,6 +46,7 @@ type Service struct {
 	auditService *audit.Service
 	runners      map[uint64]*CampaignRunner
 	mu           sync.RWMutex
+	stopSched    chan struct{}
 }
 
 // NewService creates a new SendService.
@@ -119,7 +120,7 @@ func (s *Service) Start(campaignID uint64) error {
 		return fmt.Errorf("load campaign: %w", err)
 	}
 
-	if c.Status != "draft" && c.Status != "paused" {
+	if c.Status != "draft" && c.Status != "paused" && c.Status != "scheduled" {
 		return fmt.Errorf("campaign %d cannot be started (status: %s)", campaignID, c.Status)
 	}
 
@@ -146,6 +147,7 @@ func (s *Service) Start(campaignID uint64) error {
 
 	// Update campaign status
 	c.Status = "sending"
+	c.ScheduledAt = nil
 	c.TotalCount = int(totalPending) + c.SentCount + c.FailedCount
 	s.db.Save(&c)
 
@@ -502,6 +504,165 @@ func (s *Service) HandleSetRate(w http.ResponseWriter, r *http.Request) {
 		"message":     "rate updated",
 		"campaign_id": campaignID,
 		"rate":        req.Rate,
+	})
+}
+
+// StartScheduler starts the background scheduler.
+func (s *Service) StartScheduler() {
+	s.stopSched = make(chan struct{})
+	go s.runScheduler()
+}
+
+// StopScheduler stops the background scheduler.
+func (s *Service) StopScheduler() {
+	close(s.stopSched)
+}
+
+func (s *Service) runScheduler() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+	log.Info().Msg("campaign scheduler started (30s interval)")
+	for {
+		select {
+		case <-s.stopSched:
+			log.Info().Msg("campaign scheduler stopped")
+			return
+		case <-ticker.C:
+			s.checkScheduledCampaigns()
+		}
+	}
+}
+
+func (s *Service) checkScheduledCampaigns() {
+	var campaigns []campaign.Campaign
+	if err := s.db.Where("status = ? AND scheduled_at <= ?", "scheduled", time.Now()).Find(&campaigns).Error; err != nil {
+		log.Error().Err(err).Msg("scheduler: failed to query scheduled campaigns")
+		return
+	}
+	for _, c := range campaigns {
+		log.Info().Uint64("campaign_id", c.ID).Msg("scheduler: starting scheduled campaign")
+		if err := s.Start(c.ID); err != nil {
+			log.Error().Err(err).Uint64("campaign_id", c.ID).Msg("scheduler: failed to start campaign")
+			s.db.Model(&campaign.Campaign{}).Where("id = ?", c.ID).Updates(map[string]interface{}{
+				"status":       "draft",
+				"scheduled_at": nil,
+			})
+		}
+	}
+}
+
+type scheduleRequest struct {
+	ScheduledAt string `json:"scheduled_at"`
+}
+
+func (s *Service) HandleSchedule(w http.ResponseWriter, r *http.Request) {
+	campaignID, err := parseIDParam(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var req scheduleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	scheduledAt, err := time.Parse(time.RFC3339, req.ScheduledAt)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid date format, expected RFC3339")
+		return
+	}
+
+	if scheduledAt.Before(time.Now()) {
+		writeError(w, http.StatusBadRequest, "scheduled time must be in the future")
+		return
+	}
+
+	var c campaign.Campaign
+	if err := s.db.First(&c, campaignID).Error; err != nil {
+		writeError(w, http.StatusNotFound, "campaign not found")
+		return
+	}
+
+	if c.Status != "draft" {
+		writeError(w, http.StatusBadRequest, fmt.Sprintf("only draft campaigns can be scheduled (current: %s)", c.Status))
+		return
+	}
+
+	// Validate content (same checks as Start)
+	if c.Subject == "" {
+		writeError(w, http.StatusBadRequest, "campaign has no subject")
+		return
+	}
+	if c.BodyType == "raw_mime" && c.BodyRawMIME == "" {
+		writeError(w, http.StatusBadRequest, "campaign has no email content")
+		return
+	}
+	if c.BodyType != "raw_mime" && c.BodyHTML == "" {
+		writeError(w, http.StatusBadRequest, "campaign has no email content")
+		return
+	}
+	if c.FromEmail == "" {
+		writeError(w, http.StatusBadRequest, "campaign has no sender email")
+		return
+	}
+
+	var recipientCount int64
+	s.db.Model(&recipient.Recipient{}).Where("campaign_id = ? AND status = ?", campaignID, "pending").Count(&recipientCount)
+	if recipientCount == 0 {
+		writeError(w, http.StatusBadRequest, "no pending recipients")
+		return
+	}
+
+	c.Status = "scheduled"
+	c.ScheduledAt = &scheduledAt
+	s.db.Save(&c)
+
+	// Audit log
+	actorID, _ := r.Context().Value(auth.UserIDKey).(uint64)
+	var actor auth.User
+	s.db.First(&actor, actorID)
+	s.auditService.LogMailSend(actorID, actor.Username, campaignID, c.Name, "schedule", int(recipientCount))
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"message":      "campaign scheduled",
+		"campaign_id":  campaignID,
+		"scheduled_at": scheduledAt.Format(time.RFC3339),
+	})
+}
+
+func (s *Service) HandleCancelSchedule(w http.ResponseWriter, r *http.Request) {
+	campaignID, err := parseIDParam(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var c campaign.Campaign
+	if err := s.db.First(&c, campaignID).Error; err != nil {
+		writeError(w, http.StatusNotFound, "campaign not found")
+		return
+	}
+
+	if c.Status != "scheduled" {
+		writeError(w, http.StatusBadRequest, "campaign is not scheduled")
+		return
+	}
+
+	c.Status = "draft"
+	c.ScheduledAt = nil
+	s.db.Save(&c)
+
+	// Audit log
+	actorID, _ := r.Context().Value(auth.UserIDKey).(uint64)
+	var actor auth.User
+	s.db.First(&actor, actorID)
+	s.auditService.LogMailSend(actorID, actor.Username, campaignID, c.Name, "cancel_schedule", 0)
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"message":     "schedule cancelled",
+		"campaign_id": campaignID,
 	})
 }
 

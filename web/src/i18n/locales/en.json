@@ -30,7 +30,8 @@
     "pending": "Pending",
     "sent": "Sent",
     "failed": "Failed",
-    "skipped": "Skipped"
+    "skipped": "Skipped",
+    "scheduled": "Scheduled"
   },
   "app": {
     "title": "Manty Blast Mail",
@@ -256,7 +257,13 @@
     "status": "Status",
     "error": "Error",
     "time": "Time",
-    "noResults": "No results yet. Start sending to see live results."
+    "noResults": "No results yet. Start sending to see live results.",
+    "schedule": "Schedule",
+    "scheduling": "Scheduling...",
+    "scheduledFor": "Scheduled for: {{time}}",
+    "cancelSchedule": "Cancel Schedule",
+    "cancellingSchedule": "Cancelling...",
+    "cancelScheduleConfirm": "Are you sure you want to cancel the scheduled sending?"
   },
   "report": {
     "backToCampaign": "Back to Campaign",
