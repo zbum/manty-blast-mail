@@ -18,9 +18,10 @@ type Campaign struct {
 	TotalCount  int       `json:"total_count" gorm:"default:0"`
 	SentCount   int       `json:"sent_count" gorm:"default:0"`
 	FailedCount int       `json:"failed_count" gorm:"default:0"`
-	RateLimit   int       `json:"rate_limit" gorm:"default:2"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	RateLimit   int        `json:"rate_limit" gorm:"default:2"`
+	ScheduledAt *time.Time `json:"scheduled_at,omitempty" gorm:"index:idx_campaigns_scheduled"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 // CampaignListItem is used for list queries with JOIN to include username.
@@ -33,6 +34,7 @@ type CampaignListItem struct {
 	Status      string    `json:"status"`
 	TotalCount  int       `json:"total_count"`
 	SentCount   int       `json:"sent_count"`
-	FailedCount int       `json:"failed_count"`
-	CreatedAt   time.Time `json:"created_at"`
+	FailedCount int        `json:"failed_count"`
+	ScheduledAt *time.Time `json:"scheduled_at,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
 }
